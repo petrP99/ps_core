@@ -65,19 +65,19 @@
 
         <div class="mb-3">
             <label for="cardIdFrom" style="position: relative;">Card number from:
-                <input disabled id="cardIdFrom" name="cardIdFrom" th:value="*{cardIdFrom()}" type="text">
+                <input disabled id="cardIdFrom" name="cardIdFrom" th:value="*{getCardIdFrom()}" type="text">
             </label>
         </div>
 
         <div class="mb-3">
             <label for="cardIdTo">Card number to:
-                <input disabled id="cardIdTo" name="cardIdTo" th:value="*{cardIdTo()}" type="text">
+                <input disabled id="cardIdTo" name="cardIdTo" th:value="*{getCardIdTo()}" type="text">
             </label>
         </div>
 
         <div class="mb-3">
             <label for="amount">Amount:</label>
-            <input disabled id="amount" name="amount" th:value="*{amount()}" type="text">
+            <input disabled id="amount" name="amount" th:value="*{getAmount()}" type="text">
         </div>
 
         <div class="">

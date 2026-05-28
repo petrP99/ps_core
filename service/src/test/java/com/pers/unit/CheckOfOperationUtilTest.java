@@ -5,6 +5,7 @@ import com.pers.dto.ClientReadDto;
 import com.pers.dto.UserReadDto;
 import com.pers.entity.Card;
 import com.pers.entity.Client;
+import com.pers.enums.Operation;
 import com.pers.enums.Role;
 import com.pers.enums.Status;
 import com.pers.util.CheckOfOperationUtil;
@@ -44,7 +45,7 @@ class CheckOfOperationUtilTest {
     void createClientUpdateBalanceDto() {
         var clientReadDto = new ClientReadDto(
                 1000l,
-                new UserReadDto(1000l, "user@ru", "123", Role.USER),
+                new UserReadDto(1000l, "user@ru", Role.USER),
                 BigDecimal.valueOf(100),
                 "P",
                 "L",
@@ -63,16 +64,16 @@ class CheckOfOperationUtilTest {
     void createDtoCardUpdateBalanceSubtract() {
         var amount = new BigDecimal(250);
 
-        var result = CheckOfOperationUtil.createDtoCardUpdateBalanceSubtract(cardReadDto, amount);
+        var result = CheckOfOperationUtil.getCardUpdateBalanceDto(cardReadDto, amount, Operation.SUBTRACT);
 
         assertEquals(result.balance(), BigDecimal.valueOf(250));
     }
 
     @Test
-    void createDtoCardUpdateBalanceAdd() {
+    void getCardUpdateBalanceDto() {
         var amount = new BigDecimal(250);
 
-        var result = CheckOfOperationUtil.createDtoCardUpdateBalanceAdd(cardReadDto, amount);
+        var result = CheckOfOperationUtil.getCardUpdateBalanceDto(cardReadDto, amount, Operation.ADD);
 
         assertEquals(result.balance(), BigDecimal.valueOf(750));
     }

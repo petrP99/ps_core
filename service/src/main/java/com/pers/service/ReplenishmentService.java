@@ -3,6 +3,7 @@ package com.pers.service;
 import com.pers.dto.ReplenishmentCreateDto;
 import com.pers.dto.ReplenishmentReadDto;
 import com.pers.dto.filter.ReplenishmentFilterDto;
+import com.pers.enums.Operation;
 import com.pers.enums.Status;
 import static com.pers.enums.Status.FAILED;
 import com.pers.mapper.ReplenishmentCreateMapper;
@@ -39,7 +40,7 @@ public class ReplenishmentService {
 
         if (clientReadDto.getStatus() == Status.ACTIVE && cardReadDto.status() == Status.ACTIVE) {
             create(replenishment);
-            var cardCreateDto = CheckOfOperationUtil.createDtoCardUpdateBalanceAdd(cardReadDto, replenishment.amount());
+            var cardCreateDto = CheckOfOperationUtil.getCardUpdateBalanceDto(cardReadDto, replenishment.amount(), Operation.ADD);
             cardService.updateCardBalance(cardCreateDto);
             var newBalance = CheckOfOperationUtil.calculateClientBalance(cardRepository.findByClientId(replenishment.clientId()));
             var clientUpdateBalanceDto = CheckOfOperationUtil.createClientUpdateBalanceDto(clientReadDto, newBalance);

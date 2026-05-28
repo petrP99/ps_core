@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class CardServiceIT extends BaseIntegrationIT {
@@ -41,7 +42,7 @@ class CardServiceIT extends BaseIntegrationIT {
                 .firstName("Petr")
                 .lastName("Petrov")
                 .phone("89632587854")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
 

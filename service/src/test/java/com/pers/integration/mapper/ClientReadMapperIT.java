@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class ClientReadMapperIT extends BaseIntegrationIT {
@@ -36,7 +37,7 @@ class ClientReadMapperIT extends BaseIntegrationIT {
                 .firstName("petr")
                 .lastName("petrov")
                 .phone("89638521478")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
         entityManager.persist(client);

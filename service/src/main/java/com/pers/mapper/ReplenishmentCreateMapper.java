@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class ReplenishmentCreateMapper implements Mapper<ReplenishmentCreateDto,
                 .clientTo(clientRepository.findById(object.clientId()).orElseThrow(IllegalArgumentException::new))
                 .cardNoTo(cardRepository.findById(object.cardId()).orElseThrow(IllegalArgumentException::new))
                 .amount(object.amount())
-                .timeOfReplenishment(Instant.now())
+                .timeOfReplenishment(LocalDateTime.now())
                 .status(object.status() == null ? SUCCESS : FAILED)
                 .build();
     }

@@ -4,15 +4,13 @@ import com.pers.dto.TransferCreateDto;
 import com.pers.dto.filter.TransferFilterDto;
 import com.pers.entity.Card;
 import com.pers.entity.Client;
-import com.pers.enums.Role;
-import com.pers.enums.Status;
 import com.pers.entity.Transfer;
 import com.pers.entity.User;
+import com.pers.enums.Role;
+import com.pers.enums.Status;
 import com.pers.integration.BaseIntegrationIT;
 import com.pers.service.TransferService;
 import lombok.RequiredArgsConstructor;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +18,10 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @RequiredArgsConstructor
 class TransferServiceIT extends BaseIntegrationIT {
@@ -49,7 +51,7 @@ class TransferServiceIT extends BaseIntegrationIT {
                 .firstName("Petr")
                 .lastName("Petrov")
                 .phone("89632587854")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
 
@@ -59,7 +61,7 @@ class TransferServiceIT extends BaseIntegrationIT {
                 .firstName("Ivan")
                 .lastName("Ivanov")
                 .phone("89632557854")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
 
@@ -86,7 +88,7 @@ class TransferServiceIT extends BaseIntegrationIT {
                 .amount(new BigDecimal(0))
                 .message("happy birthday")
                 .recipient("Ivan Ivanov")
-                .timeOfTransfer(Instant.now())
+                .timeOfTransfer(LocalDateTime.now())
                 .status(Status.SUCCESS)
                 .build();
 
@@ -97,7 +99,7 @@ class TransferServiceIT extends BaseIntegrationIT {
                 .amount(new BigDecimal(250))
                 .message("for you")
                 .recipient("Ivan Ivanov")
-                .timeOfTransfer(Instant.now())
+                .timeOfTransfer(LocalDateTime.now())
                 .status(Status.SUCCESS)
                 .build();
 
@@ -110,25 +112,27 @@ class TransferServiceIT extends BaseIntegrationIT {
         entityManager.persist(transfer);
         entityManager.persist(transfer2);
 
-        transferCreateDto = new TransferCreateDto(
-                transfer.getClientId().getId(),
-                transfer.getCardNoFrom().getId(),
-                transfer.getCardNoTo().getId(),
-                transfer.getAmount(),
-                transfer.getTimeOfTransfer(),
-                transfer.getRecipient(),
-                transfer.getMessage(),
-                transfer.getStatus());
+        transferCreateDto = TransferCreateDto.builder()
+                .clientId(transfer.getClientId().getId())
+                .cardIdFrom(transfer.getCardNoFrom().getId())
+                .cardIdTo(transfer.getCardNoTo().getId())
+                .amount(transfer.getAmount())
+                .time(transfer.getTimeOfTransfer())
+                .recipient(transfer.getRecipient())
+                .message(transfer.getMessage())
+                .status(transfer.getStatus())
+                .build();
 
-        transferCreateDto2 = new TransferCreateDto(
-                transfer2.getClientId().getId(),
-                transfer2.getCardNoFrom().getId(),
-                transfer2.getCardNoTo().getId(),
-                transfer2.getAmount(),
-                transfer2.getTimeOfTransfer(),
-                transfer2.getRecipient(),
-                transfer2.getMessage(),
-                transfer2.getStatus());
+        transferCreateDto2 = TransferCreateDto.builder()
+                .clientId(transfer2.getClientId().getId())
+                .cardIdFrom(transfer2.getCardNoFrom().getId())
+                .cardIdTo(transfer2.getCardNoTo().getId())
+                .amount(transfer2.getAmount())
+                .time(transfer2.getTimeOfTransfer())
+                .recipient(transfer2.getRecipient())
+                .message(transfer2.getMessage())
+                .status(transfer2.getStatus())
+                .build();
     }
 
     @Test

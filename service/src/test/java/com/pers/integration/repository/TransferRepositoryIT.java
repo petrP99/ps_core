@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class TransferRepositoryIT extends BaseIntegrationIT {
@@ -52,7 +53,7 @@ class TransferRepositoryIT extends BaseIntegrationIT {
                 .firstName("Ivan")
                 .lastName("Ivanov")
                 .phone("89638527412")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .balance(new BigDecimal(0))
                 .status(ACTIVE)
                 .build();
@@ -61,7 +62,7 @@ class TransferRepositoryIT extends BaseIntegrationIT {
                 .firstName("Petr")
                 .lastName("Petrov")
                 .phone("89632589632")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .balance(new BigDecimal(0))
                 .status(ACTIVE)
                 .build();
@@ -86,7 +87,7 @@ class TransferRepositoryIT extends BaseIntegrationIT {
                 .amount(new BigDecimal(250))
                 .message("hello")
                 .recipient(client2.getFirstName() + client2.getLastName())
-                .timeOfTransfer(Instant.now())
+                .timeOfTransfer(LocalDateTime.now())
                 .status(SUCCESS)
                 .build();
         transfer2 = Transfer.builder()
@@ -96,7 +97,7 @@ class TransferRepositoryIT extends BaseIntegrationIT {
                 .amount(new BigDecimal(250))
                 .message("hello")
                 .recipient(client.getFirstName() + client.getLastName())
-                .timeOfTransfer(Instant.now())
+                .timeOfTransfer(LocalDateTime.now())
                 .status(SUCCESS)
                 .build();
         userRepository.save(user);

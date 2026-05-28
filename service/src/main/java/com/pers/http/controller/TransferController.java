@@ -4,7 +4,6 @@ import com.pers.dto.TransferCreateDto;
 import com.pers.dto.TransferReadDto;
 import com.pers.dto.filter.PageResponse;
 import com.pers.dto.filter.TransferFilterDto;
-import static com.pers.enums.Status.ACTIVE;
 import com.pers.service.CardService;
 import com.pers.service.ClientService;
 import com.pers.service.TransferService;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import static com.pers.enums.Status.ACTIVE;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 
 @Slf4j
@@ -65,7 +66,7 @@ public class TransferController {
 
     @GetMapping("/check")
     public String checkTransfer(@Validated TransferCreateDto transfer, HttpSession session, Model model) {
-        var recipient = clientService.findFirstAndLastNameByClientId(cardService.findById(transfer.cardIdTo()).orElseThrow().clientId());
+        var recipient = clientService.findFirstAndLastNameByClientId(cardService.findById(transfer.getCardIdTo()).orElseThrow().clientId());
         session.setAttribute("transfer", transfer);
         model.addAttribute("recipient", recipient);
         return "transfer/check";
@@ -80,7 +81,17 @@ public class TransferController {
                 .orElseThrow().id();
 
         var recipient = clientService.findFirstAndLastNameByClientId(clientTo);
-        var updateTransfer = new TransferCreateDto(transfer.clientId(), transfer.cardIdFrom(), cardTo, transfer.amount(), transfer.timeOfTransfer(), recipient, transfer.message(), transfer.status());
+        var updateTransfer = TransferCreateDto.builder()
+                .clientId(transfer.getClientId())
+                .cardIdFrom(transfer.getCardIdFrom())
+                .cardIdTo(cardTo)
+                .amount(transfer.getAmount())
+                .time(transfer.getTime())
+                .recipient(recipient)
+                .message(transfer.getMessage())
+                .status(transfer.getStatus())
+                .build();
+
         model.addAttribute("recipient", recipient);
         session.setAttribute("transfer", updateTransfer);
         return "transfer/check";

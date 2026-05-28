@@ -84,7 +84,7 @@
             </label>
         </div>
         <label class="form-label" for="amount">Amount:
-            <input class="form-control" id="amount" min="0" name="amount" pattern="[0-9]*" th:value="*{amount()}"
+            <input class="form-control" id="amount" min="0" name="amount" pattern="[0-9]*" th:value="*{getAmount()}"
                    type="number"> </label>
         <input class="form-control" name="message" type="hidden" value="between cards"><br>
         <button class="btn btn-primary btn-full-width" id="submitButton" type="submit">Transfer!</button>

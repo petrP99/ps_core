@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -44,10 +44,8 @@ public class Transfer implements BaseEntity<Long> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_no_to")
     private Card cardNoTo;
-
     private BigDecimal amount;
-    private Instant timeOfTransfer;
-
+    private LocalDateTime timeOfTransfer;
     private String recipient;
     private String message;
 

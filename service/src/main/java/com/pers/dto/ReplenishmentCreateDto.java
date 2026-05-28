@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @ReplenishmentInfo
 public record ReplenishmentCreateDto(
@@ -17,7 +18,7 @@ public record ReplenishmentCreateDto(
         BigDecimal amount,
 
         @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
-        Instant timeOfReplenishment,
+        LocalDateTime timeOfReplenishment,
         Status status
 
 ) {

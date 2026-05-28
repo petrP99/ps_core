@@ -92,14 +92,14 @@
         <div class="mb-3">
             <label class="form-label" for="amount">Amount:
                 <input class="form-control" id="amount" min="1" name="amount" pattern="[0-9]*"
-                       th:value="*{amount()}" type="number">
+                       th:value="*{getAmount()}" type="number">
             </label><br>
             <span class="text-danger" id="amountError"></span>
         </div>
         <div class="mb-3">
             <label class="form-label" for="message">Message:
                 <input class="form-control" id="message" maxlength="120" name="message" style="height: 50px;"
-                       th:value="*{message()}" type="text">
+                       th:value="*{getMessage()}" type="text">
             </label><br>
         </div>
         <button class="btn btn-primary btn-full-width" id="submitButton" type="submit">

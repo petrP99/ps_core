@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class ClientUpdateBalanceMapper implements Mapper<ClientUpdateBalanceDto,
                 .lastName(object.lastName())
                 .phone(object.phone())
                 .status(Status.ACTIVE)
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .build();
     }
 }

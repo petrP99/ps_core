@@ -5,6 +5,7 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Value
 public class ClientReadDto {
@@ -16,5 +17,5 @@ public class ClientReadDto {
     String lastName;
     String phone;
     Status status;
-    Instant createdTime;
+    LocalDateTime createdTime;
 }

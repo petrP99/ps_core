@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class ReplenishmentCreateMapperIT extends BaseIntegrationIT {
@@ -41,7 +42,7 @@ class ReplenishmentCreateMapperIT extends BaseIntegrationIT {
                 .firstName("petr")
                 .lastName("petrov")
                 .phone("89638521478")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
         entityManager.persist(client);
@@ -56,7 +57,7 @@ class ReplenishmentCreateMapperIT extends BaseIntegrationIT {
         entityManager.persist(card);
 
         replenishmentCreateDto = new ReplenishmentCreateDto(client.getId(), card.getId(), new BigDecimal(100),
-                Instant.now(), Status.SUCCESS);
+                LocalDateTime.now(), Status.SUCCESS);
     }
 
     @Test

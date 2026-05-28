@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class PaymentReadMapperIT extends BaseIntegrationIT {
@@ -41,7 +42,7 @@ class PaymentReadMapperIT extends BaseIntegrationIT {
                 .firstName("petr")
                 .lastName("petrov")
                 .phone("89638521478")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
         entityManager.persist(client);
@@ -60,7 +61,7 @@ class PaymentReadMapperIT extends BaseIntegrationIT {
                 .card(card)
                 .shopName("anything")
                 .amount(new BigDecimal(100))
-                .timeOfPay(Instant.now())
+                .timeOfPay(LocalDateTime.now())
                 .status(Status.SUCCESS)
                 .build();
         entityManager.persist(payment);

@@ -1,32 +1,26 @@
-package com.pers.dto;
+package com.pers.event;
 
-import com.pers.enums.Status;
-import com.pers.validation.TransferInfo;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
-@TransferInfo
-@AllArgsConstructor
 @NoArgsConstructor
-public class TransferCreateDto {
+@AllArgsConstructor
+public class TransferCreateEvent {
 
-    @Positive
-    private BigDecimal amount;
+    private Long transferId;
     private Long clientId;
     private Long cardIdFrom;
     private Long cardIdTo;
+    private BigDecimal amount;
     private LocalDateTime time;
     private String recipient;
     private String message;
-    private Status status;
-    private Long id;
+    private String status;
 }

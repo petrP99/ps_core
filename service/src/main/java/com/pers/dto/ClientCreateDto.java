@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @ClientInfo
 @FieldNameConstants
@@ -29,5 +30,5 @@ public record ClientCreateDto(Long userId,
                               @Size(min = 11, max = 11, message = "field 'phone' only accepts numbers length 11")
                               String phone,
                               Status status,
-                              Instant createdTime) {
+                              LocalDateTime createdTime) {
 }

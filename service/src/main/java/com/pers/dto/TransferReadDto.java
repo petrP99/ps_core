@@ -4,6 +4,7 @@ import com.pers.enums.Status;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 public record TransferReadDto(
         Long id,
@@ -12,7 +13,7 @@ public record TransferReadDto(
         Long cardIdFrom,
         Long cardIdTo,
         BigDecimal amount,
-        Instant timeOfTransfer,
+        LocalDateTime timeOfTransfer,
         String recipient,
         String message,
         Status status

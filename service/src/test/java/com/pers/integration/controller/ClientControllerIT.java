@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,7 +60,7 @@ class ClientControllerIT extends BaseIntegrationIT {
                 .firstName("Petr")
                 .lastName("Petrov")
                 .phone("89632587854")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
 

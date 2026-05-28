@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class ReplenishmentRepositoryIT extends BaseIntegrationIT {
@@ -47,7 +48,7 @@ class ReplenishmentRepositoryIT extends BaseIntegrationIT {
                 .firstName("Ivan")
                 .lastName("Ivanov")
                 .phone("89638527412")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .balance(new BigDecimal(0))
                 .status(ACTIVE)
                 .build();
@@ -62,14 +63,14 @@ class ReplenishmentRepositoryIT extends BaseIntegrationIT {
                 .clientTo(client)
                 .cardNoTo(card)
                 .amount(new BigDecimal(777))
-                .timeOfReplenishment(Instant.now())
+                .timeOfReplenishment(LocalDateTime.now())
                 .status(SUCCESS)
                 .build();
         replenishment2 = Replenishment.builder()
                 .clientTo(client)
                 .cardNoTo(card)
                 .amount(new BigDecimal(333))
-                .timeOfReplenishment(Instant.now())
+                .timeOfReplenishment(LocalDateTime.now())
                 .status(FAILED)
                 .build();
 

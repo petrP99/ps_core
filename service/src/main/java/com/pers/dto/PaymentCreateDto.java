@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @PaymentInfo
 public record PaymentCreateDto(
@@ -24,6 +25,6 @@ public record PaymentCreateDto(
         Long cardId,
 
         @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
-        Instant timeOfPay,
+        LocalDateTime timeOfPay,
         Status status) {
 }

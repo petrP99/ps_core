@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 class PaymentServiceIT extends BaseIntegrationIT {
@@ -45,7 +46,7 @@ class PaymentServiceIT extends BaseIntegrationIT {
                 .firstName("Petr")
                 .lastName("Petrov")
                 .phone("89632587854")
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .status(Status.ACTIVE)
                 .build();
 
@@ -70,7 +71,7 @@ class PaymentServiceIT extends BaseIntegrationIT {
                 .card(card)
                 .amount(new BigDecimal(250))
                 .shopName("Ozon")
-                .timeOfPay(Instant.now())
+                .timeOfPay(LocalDateTime.now())
                 .status(Status.SUCCESS)
                 .build();
 
@@ -79,7 +80,7 @@ class PaymentServiceIT extends BaseIntegrationIT {
                 .card(card)
                 .amount(new BigDecimal(200))
                 .shopName("Ozon")
-                .timeOfPay(Instant.now())
+                .timeOfPay(LocalDateTime.now())
                 .status(Status.SUCCESS)
                 .build();
 

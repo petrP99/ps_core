@@ -18,6 +18,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -43,6 +44,6 @@ public class Client implements BaseEntity<Long> {
     private String lastName;
     private String phone;
     private BigDecimal balance;
-    private Instant createdTime;
+    private LocalDateTime createdTime;
 
 }

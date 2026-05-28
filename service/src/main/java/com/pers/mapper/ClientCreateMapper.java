@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class ClientCreateMapper implements Mapper<ClientCreateDto, Client> {
                 .lastName(object.lastName())
                 .phone(object.phone())
                 .status(ACTIVE)
-                .createdTime(Instant.now())
+                .createdTime(LocalDateTime.now())
                 .build();
     }
 
@@ -37,7 +38,7 @@ public class ClientCreateMapper implements Mapper<ClientCreateDto, Client> {
         toObject.setLastName(fromObject.lastName());
         toObject.setPhone(fromObject.phone());
         toObject.setStatus(fromObject.status() == ACTIVE ? BLOCKED : ACTIVE);
-        toObject.setCreatedTime(Instant.now());
+        toObject.setCreatedTime(LocalDateTime.now());
         return toObject;
     }
 }

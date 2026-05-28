@@ -20,6 +20,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -43,7 +44,7 @@ public class Replenishment implements BaseEntity<Long> {
     private Card cardNoTo;
 
     private BigDecimal amount;
-    private Instant timeOfReplenishment;
+    private LocalDateTime timeOfReplenishment;
 
     @Enumerated(EnumType.STRING)
     private Status status;
