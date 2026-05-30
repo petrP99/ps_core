@@ -4,6 +4,7 @@ import com.pers.dto.ClientCreateDto;
 import com.pers.dto.ClientReadDto;
 import com.pers.dto.ClientUpdateBalanceDto;
 import com.pers.dto.filter.ClientFilterDto;
+import com.pers.entity.Client;
 import com.pers.mapper.ClientCreateMapper;
 import com.pers.mapper.ClientReadMapper;
 import com.pers.mapper.ClientUpdateBalanceMapper;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -26,7 +28,6 @@ public class ClientService {
     private final ClientReadMapper clientReadMapper;
     private final ClientCreateMapper clientCreateMapper;
     private final ClientUpdateBalanceMapper clientUpdateBalanceMapper;
-
 
     public Page<ClientReadDto> findAll(ClientFilterDto filter, Pageable pageable) {
         return clientRepository.findAllByFilter(filter, pageable)
@@ -79,18 +80,21 @@ public class ClientService {
                 .orElse(false);
     }
 
-    public Optional<ClientReadDto> findByUserId(Long userId) {
-        return clientRepository.findByUserId(userId)
-                .map(clientReadMapper::mapFrom);
-    }
-
     public Optional<ClientReadDto> findByPhone(String phone) {
         return clientRepository.findByPhone(phone)
                 .map(clientReadMapper::mapFrom);
     }
 
-    public Optional<ClientReadDto> findByUserName(String username) {
-        return clientRepository.findByUserLogin(username)
-                .map(clientReadMapper::mapFrom);
+    public Optional<Client> findByPhoneEntity(String phone) {
+        return clientRepository.findByPhone(phone);
+    }
+
+    @Transactional
+    public Long getIdFromSuccessAuth(Map<String, Object> attributes) {
+        ClientCreateDto createDto = clientCreateMapper.mapToDto(attributes);
+
+        return clientRepository.findByPhone(createDto.phone())
+                .map(Client::getId)
+                .orElseGet(() -> create(createDto).getId());
     }
 }

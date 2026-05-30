@@ -12,14 +12,10 @@ public interface ClientRepository extends JpaRepository<Client, Long>,
         FilterClientRepository,
         QuerydslPredicateExecutor<Client> {
 
-    Optional<Client> findByUserId(Long id);
-
     Optional<Client> findById(Long id);
 
     Optional<Client> findByPhone(String phone);
 
-    Optional<Client> findByUserLogin(String login);
-
-    @Query("select concat(c.firstName, ' ', c.lastName)from Client c where c.id = :id")
+    @Query("select concat(c.firstName, ' ', c.lastName) from Client c where c.id = :id")
     String findFirstAndLastNameByClientId(Long id);
 }

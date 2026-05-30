@@ -1,30 +1,17 @@
-INSERT INTO users (id, login, password, role)
+INSERT INTO client (id, role, first_name, last_name, phone, balance, created_time, status)
 VALUES
-    (1111, '1@superadmin.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'SUPER_ADMIN'),
-    (1112, '1@admin.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'ADMIN'),
-    (1113, '1@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (1114, '2@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (1115, '3@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (1116, '4@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (1117, '5@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (1118, '6@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (1119, '7@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (11110, '8@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (11111, '9@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER'),
-    (11112, '10@ps.ru', '{bcrypt}$2a$10$dZ156dLkqbXN/V.XWvQNwOxLGukLojzipn8NxG9xYK8g.x5o2WAiK', 'USER');
-
-INSERT INTO client (id, user_id, first_name, last_name, phone, balance, created_time, status)
-VALUES
-    (1, 1113, 'Ivan', 'Petrov', '+79161234567', 5420.75, '2025-01-15 10:30:00', 'ACTIVE'),
-    (2, 1114, 'Maria', 'Sidorova', '+79162345678', 8730.50, '2025-02-20 14:15:00', 'ACTIVE'),
-    (3, 1115, 'Alexey', 'Ivanov', '+79163456789', 3250.00, '2025-03-10 09:45:00', 'INACTIVE'),
-    (4, 1116, 'Elena', 'Smirnova', '+79164567890', 12980.25, '2025-01-05 16:20:00', 'ACTIVE'),
-    (5, 1117, 'Dmitry', 'Kozlov', '+79165678901', 6750.80, '2025-04-12 11:10:00', 'ACTIVE'),
-    (6, 1118, 'Olga', 'Popova', '+79166789012', 4450.00, '2025-02-28 13:55:00', 'ACTIVE'),
-    (7, 1119, 'Sergey', 'Sokolov', '+79167890123', 8920.45, '2025-03-25 08:30:00', 'ACTIVE'),
-    (8, 11110, 'Anna', 'Lebedeva', '+79168901234', 2150.90, '2025-01-20 17:40:00', 'ACTIVE'),
-    (9, 11111, 'Pavel', 'Morozov', '+79169012345', 15670.00, '2025-04-05 12:25:00', 'INACTIVE'),
-    (10, 11112, 'Natalia', 'Volkova', '+79160123456', 7830.60, '2025-02-15 15:05:00', 'ACTIVE');
+    (1, 'USER', 'Ivan', 'Petrov', '+79161234567', 5420.75, '2025-01-15 10:30:00', 'ACTIVE'),
+    (2, 'USER', 'Maria', 'Sidorova', '+79162345678', 8730.50, '2025-02-20 14:15:00', 'ACTIVE'),
+    (3, 'USER', 'Alexey', 'Ivanov', '+79163456789', 3250.00, '2025-03-10 09:45:00', 'ACTIVE'),
+    (4, 'USER', 'Elena', 'Smirnova', '+79164567890', 12980.25, '2025-01-05 16:20:00', 'ACTIVE'),
+    (5, 'USER', 'Dmitry', 'Kozlov', '+79165678901', 6750.80, '2025-04-12 11:10:00', 'ACTIVE'),
+    (6, 'USER', 'Olga', 'Popova', '+79166789012', 4450.00, '2025-02-28 13:55:00', 'ACTIVE'),
+    (7, 'USER', 'Sergey', 'Sokolov', '+79167890123', 8920.45, '2025-03-25 08:30:00', 'ACTIVE'),
+    (8, 'USER', 'Anna', 'Lebedeva', '+79168901234', 2150.90, '2025-01-20 17:40:00', 'ACTIVE'),
+    (9, 'USER', 'Pavel', 'Morozov', '+79169012345', 15670.00, '2025-04-05 12:25:00', 'ACTIVE'),
+    (10, 'USER', 'Natalia', 'Volkova', '+79160123456', 7830.60, '2025-02-15 15:05:00', 'ACTIVE'),
+    (111, 'SUPER_ADMIN', 'Admin', 'Super', '+79160000001', 0.00, '2025-01-01 00:00:00', 'ACTIVE'),
+    (112, 'ADMIN', 'Admin', 'Regular', '+79160000002', 0.00, '2025-01-01 00:00:00', 'ACTIVE');
 
 INSERT INTO card (id, client_id, balance, created_date, expire_date, status)
 VALUES

@@ -23,7 +23,6 @@ public class CheckOfOperationUtil {
     public static ClientUpdateBalanceDto createClientUpdateBalanceDto(ClientReadDto clientReadDto, BigDecimal newBalance) {
         return new ClientUpdateBalanceDto(
                 clientReadDto.getId(),
-                clientReadDto.getUserId().getId(),
                 newBalance,
                 clientReadDto.getFirstName(),
                 clientReadDto.getLastName(),

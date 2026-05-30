@@ -1,26 +1,17 @@
 --liquibase formatted sql
 
---changeset pers:1
-create TABLE IF NOT EXISTS users
-(
-    id       BIGSERIAL PRIMARY KEY,
-    login    VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255)  NOT NULL,
-    role     VARCHAR(20)        NOT NULL
-);
---rollback DROP TABLE users;
 
 --changeset pers:2
 create TABLE IF NOT EXISTS client
 (
     id           BIGSERIAL PRIMARY KEY,
-    user_id      BIGINT REFERENCES users (id) ON DELETE CASCADE NOT NULL,
-    first_name   VARCHAR(128)                                      NOT NULL,
-    last_name    VARCHAR(128)                                      NOT NULL,
-    phone        VARCHAR(20)                                UNIQUE NOT NULL,
-    balance      NUMERIC(10, 2)                                    DEFAULT '0',
-    created_time TIMESTAMP                                         NOT NULL,
-    status       VARCHAR(56)                                       NOT NULL
+    first_name   VARCHAR(128) NOT NULL,
+    last_name    VARCHAR(128) NOT NULL,
+    phone        VARCHAR(20) UNIQUE NOT NULL,
+    balance      NUMERIC(10, 2) DEFAULT '0',
+    created_time TIMESTAMP NOT NULL,
+    role         VARCHAR(20) NOT NULL,
+    status       VARCHAR(56) NOT NULL
 );
 --rollback DROP TABLE client;
 
@@ -79,7 +70,6 @@ create TABLE IF NOT EXISTS replenishment
 );
 --rollback DROP TABLE replenishment;
 
-ALTER SEQUENCE users_id_seq RESTART WITH 99999;
 ALTER SEQUENCE client_id_seq RESTART WITH 99999;
 
 

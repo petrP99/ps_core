@@ -23,7 +23,6 @@ public class FilterClientRepositoryImpl implements FilterClientRepository {
     @Override
     public Page<Client> findAllByFilter(ClientFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
-                .add(filter.userId(), client.user.id::eq)
                 .add(filter.id(), client.id::eq)
                 .add(filter.status(), client.status::eq)
                 .add(filter.firstName(), client.firstName::containsIgnoreCase)
