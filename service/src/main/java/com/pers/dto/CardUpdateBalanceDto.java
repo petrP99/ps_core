@@ -1,5 +1,6 @@
 package com.pers.dto;
 
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
 import jakarta.validation.constraints.PositiveOrZero;
 
@@ -12,5 +13,7 @@ public record CardUpdateBalanceDto(Long id,
                                    BigDecimal balance,
                                    LocalDate createdDate,
                                    LocalDate expireDate,
+                                   String name,
+                                   Currency currency,
                                    Status status) {
 }

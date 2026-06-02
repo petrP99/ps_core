@@ -5,6 +5,7 @@ import com.pers.dto.ClientReadDto;
 import com.pers.dto.UserReadDto;
 import com.pers.entity.Card;
 import com.pers.entity.Client;
+import com.pers.enums.Currency;
 import com.pers.enums.Operation;
 import com.pers.enums.Role;
 import com.pers.enums.Status;
@@ -20,7 +21,7 @@ import java.util.List;
 
 class CheckOfOperationUtilTest {
 
-    CardReadDto cardReadDto = new CardReadDto(2324l, Client.builder().id(134343l).build().getId(), BigDecimal.valueOf(500), LocalDate.now(), LocalDate.now().plusYears(1), Status.ACTIVE);
+    CardReadDto cardReadDto = new CardReadDto(2324l, Client.builder().id(134343l).build().getId(), BigDecimal.valueOf(500), LocalDate.now(), LocalDate.now().plusYears(1), null, Currency.RUB, Status.ACTIVE);
 
 
     @Test

@@ -1,6 +1,7 @@
 package com.pers.http.rest;
 
 import com.pers.dto.CardCreateDto;
+import com.pers.dto.CardCreateDto2;
 import com.pers.dto.CardReadDto;
 import com.pers.dto.filter.CardFilterDto;
 import com.pers.dto.filter.PageResponse;
@@ -38,18 +39,36 @@ public class CardRestController {
     private final CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<CardReadDto> create(@Validated @RequestBody CardCreateDto card) {
-        CardReadDto createdCard = cardService.create(card);
+    public ResponseEntity<CardReadDto> create(@Validated @RequestBody CardCreateDto2 card, @CurrentClientId Long clientId) {
+        CardReadDto createdCard = cardService.create(card, clientId);
         return ResponseEntity.ok(createdCard);
     }
 
-    @PutMapping("/{id}/block")
+    @GetMapping("/{id}/block")
     public ResponseEntity<CardReadDto> block(@PathVariable Long id) {
         return cardService.findById(id)
-                .flatMap(card -> cardService.updateStatusToBlocked(card))
+                .flatMap(cardService::updateStatusToBlocked)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
     }
+
+    @GetMapping("/my")
+    public List<CardReadDto> findByClientId(@CurrentClientId Long clientId) {
+        cardService.checkCardExpire();
+        log.warn("Получен ответ по картам профиля clientId={}", clientId);
+        return cardService.findByClientId(clientId);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CardReadDto> findById(@PathVariable Long id) {
+        return cardService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+    }
+
+    /**
+     * Methods for the Admins
+     */
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
@@ -60,23 +79,10 @@ public class CardRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/my")
-    public List<CardReadDto> findByClientId(@CurrentClientId Long clientId) {
-        cardService.checkCardExpire();
-        return cardService.findByClientId(clientId);
-    }
-
     @GetMapping("/findAll")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public PageResponse<CardReadDto> findAll(CardFilterDto filter, Pageable pageable) {
         Page<CardReadDto> page = cardService.findAllByFilter(filter, pageable);
         return PageResponse.of(page);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CardReadDto> findById(@PathVariable Long id) {
-        return cardService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
     }
 }

@@ -1,6 +1,7 @@
 package com.pers.dto.filter;
 
 
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
 import lombok.Builder;
 
@@ -13,5 +14,7 @@ public record CardFilterDto(
         Long clientId,
         BigDecimal balance,
         LocalDate expireDate,
+        String name,
+        Currency currency,
         Status status) {
 }

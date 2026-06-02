@@ -1,5 +1,6 @@
 package com.pers.dto;
 
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
 
 import java.math.BigDecimal;
@@ -10,5 +11,7 @@ public record CardReadDto(Long id,
                           BigDecimal balance,
                           LocalDate createdDate,
                           LocalDate expireDate,
+                          String name,
+                          Currency currency,
                           Status status) {
 }

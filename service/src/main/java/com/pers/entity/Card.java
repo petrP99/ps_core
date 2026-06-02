@@ -1,5 +1,6 @@
 package com.pers.entity;
 
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,6 +43,11 @@ public class Card implements BaseEntity<Long> {
     private LocalDate createdDate;
 
     private LocalDate expireDate;
+
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    private Currency currency;
 
     @Enumerated(EnumType.STRING)
     private Status status;

@@ -3,6 +3,7 @@ package com.pers.integration.service;
 import com.pers.dto.CardCreateDto;
 import com.pers.entity.Card;
 import com.pers.entity.Client;
+import com.pers.enums.Currency;
 import com.pers.enums.Role;
 import com.pers.enums.Status;
 import com.pers.entity.User;
@@ -51,6 +52,8 @@ class CardServiceIT extends BaseIntegrationIT {
                 .balance(new BigDecimal(100))
                 .createdDate(LocalDate.now())
                 .expireDate(LocalDate.now().plusYears(5))
+                .name("тестовая")
+                .currency(Currency.RUB)
                 .status(Status.ACTIVE)
                 .build();
 
@@ -59,6 +62,8 @@ class CardServiceIT extends BaseIntegrationIT {
                 .balance(new BigDecimal(50))
                 .createdDate(LocalDate.now())
                 .expireDate(LocalDate.now().plusYears(5))
+                .name("для покупок")
+                .currency(Currency.RUB)
                 .status(Status.ACTIVE)
                 .build();
 
@@ -67,7 +72,7 @@ class CardServiceIT extends BaseIntegrationIT {
         entityManager.persist(card);
         entityManager.persist(card2);
 
-        cardCreateDto = new CardCreateDto(card.getClient().getId(), card.getBalance(), card.getCreatedDate(), card.getExpireDate(), card.getStatus());
+        cardCreateDto = new CardCreateDto(card.getClient().getId(), card.getBalance(), card.getCreatedDate(), card.getExpireDate(), card.getName(), card.getCurrency(), card.getStatus());
     }
 
     @Test

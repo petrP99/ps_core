@@ -41,15 +41,6 @@ public class CurrentClientIdArgumentResolver implements HandlerMethodArgumentRes
             case OAuth2User oauth2User -> oauth2User.getAttributes();
             default -> throw new IllegalStateException("Unexpected principal type: " + principal);
         };
-
-//        if (principal instanceof Jwt jwt) {
-//            clientIdClaim = jwt.getClaims();
-//        } else if (principal instanceof OidcUser oidcUser) {
-//            clientIdClaim = oidcUser.getClaims();
-//        } else if (principal instanceof OAuth2User oauth2User) {
-//            clientIdClaim = oauth2User.getAttributes();
-//        }
-//        OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
         return clientService.getIdFromSuccessAuth(clientIdClaim);
     }
 }

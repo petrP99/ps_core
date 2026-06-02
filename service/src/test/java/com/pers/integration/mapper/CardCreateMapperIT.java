@@ -4,6 +4,7 @@ import com.pers.dto.CardCreateDto;
 import com.pers.dto.CardReadDto;
 import com.pers.entity.Card;
 import com.pers.entity.Client;
+import com.pers.enums.Currency;
 import com.pers.enums.Role;
 import com.pers.enums.Status;
 import com.pers.entity.User;
@@ -56,12 +57,14 @@ class CardCreateMapperIT extends BaseIntegrationIT {
                 .balance(new BigDecimal(100))
                 .createdDate(LocalDate.now())
                 .expireDate(LocalDate.now().plusYears(3))
+                .name("тестовая")
+                .currency(Currency.RUB)
                 .status(Status.ACTIVE)
                 .build();
         entityManager.persist(card);
 
         cardReadDto = cardReadMapper.mapFrom(card);
-        cardCreateDto = new CardCreateDto(card.getClient().getId(), card.getBalance(), card.getCreatedDate(), card.getExpireDate(), Status.BLOCKED);
+        cardCreateDto = new CardCreateDto(card.getClient().getId(), card.getBalance(), card.getCreatedDate(), card.getExpireDate(), card.getName(), card.getCurrency(), Status.BLOCKED);
     }
 
     @Test

@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-//@EnableKafka
 @ConfigurationPropertiesScan
 public class ApplicationRunner {
 

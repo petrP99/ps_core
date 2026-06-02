@@ -20,6 +20,8 @@ public class CardUpdateBalanceMapper implements Mapper<CardUpdateBalanceDto, Car
                 .balance(object.balance())
                 .createdDate(object.createdDate())
                 .expireDate(object.expireDate())
+                .name(object.name())
+                .currency(object.currency())
                 .status(object.status())
                 .build();
     }

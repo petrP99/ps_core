@@ -25,6 +25,8 @@ create TABLE IF NOT EXISTS card
     balance      NUMERIC(10, 2)                                    DEFAULT '0',
     created_date DATE                                               NOT NULL,
     expire_date  DATE                                               NOT NULL,
+    name         VARCHAR(50),
+    currency     VARCHAR(10)                                        NOT NULL,
     status       VARCHAR(56)                                        NOT NULL
 );
 

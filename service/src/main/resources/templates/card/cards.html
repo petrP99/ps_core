@@ -36,6 +36,18 @@
     <div class="card">
         <form method="post" th:action="@{/cards/create}">
             <input id="clientId" name="clientId" th:value="${session.clientId}" type="hidden">
+            <div class="form-group">
+                <label for="name">Card name (optional):</label>
+                <input class="form-control" id="name" name="name" maxlength="50" placeholder="e.g. зарплатная" type="text">
+            </div>
+            <div class="form-group">
+                <label for="currency">Currency:</label>
+                <select class="form-control" id="currency" name="currency">
+                    <option value="RUB">RUB</option>
+                    <option value="USD">USD</option>
+                    <option value="CNY">CNY</option>
+                </select>
+            </div>
             <button class="btn btn-success" type="submit">Create card</button>
         </form>
     </div>
@@ -44,7 +56,9 @@
         <thead>
         <tr>
             <th>Card number</th>
+            <th>Name</th>
             <th>Balance</th>
+            <th>Currency</th>
             <th>Expire date</th>
             <th>Status</th>
             <th>Replenish</th>
@@ -54,8 +68,9 @@
         <tbody>
         <tr th:each="card : ${cards}">
             <td th:text="${card.id()}"></td>
+            <td th:text="${card.name()}"></td>
             <td th:text="${card.balance()}"></td>
-            <td th:text="${card.expireDate()}"></td>
+            <td th:text="${card.currency()}"></td>
             <td th:class="${card.status().name()  ==  'ACTIVE' ? 'text-success' : (card.status().name() == 'BLOCKED' ? 'text-danger' : 'text-warning')}"
                 th:text="${card.status().name()}"></td>
             <td>

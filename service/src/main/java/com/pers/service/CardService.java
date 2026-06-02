@@ -1,6 +1,7 @@
 package com.pers.service;
 
 import com.pers.dto.CardCreateDto;
+import com.pers.dto.CardCreateDto2;
 import com.pers.dto.CardReadDto;
 import com.pers.dto.CardUpdateBalanceDto;
 import com.pers.dto.filter.CardFilterDto;
@@ -40,6 +41,14 @@ public class CardService {
     public CardReadDto create(CardCreateDto cardDto) {
         return Optional.of(cardDto)
                 .map(cardCreateMapper::mapFrom)
+                .map(cardRepository::save)
+                .map(cardReadMapper::mapFrom)
+                .orElseThrow();
+    }
+
+    public CardReadDto create(CardCreateDto2 cardDto, Long clientId) {
+        return Optional.of(cardDto)
+                .map(dto -> cardCreateMapper.mapFrom(dto, clientId))
                 .map(cardRepository::save)
                 .map(cardReadMapper::mapFrom)
                 .orElseThrow();

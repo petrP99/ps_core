@@ -17,6 +17,8 @@ public class CardReadMapper implements Mapper<Card, CardReadDto> {
                 object.getBalance(),
                 object.getCreatedDate(),
                 object.getExpireDate(),
+                object.getName(),
+                object.getCurrency(),
                 object.getStatus()
         );
     }

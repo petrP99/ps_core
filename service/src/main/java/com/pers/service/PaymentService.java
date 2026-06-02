@@ -49,6 +49,8 @@ public class PaymentService {
                     cardReadDto.balance().subtract(amount),
                     cardReadDto.createdDate(),
                     cardReadDto.expireDate(),
+                    cardReadDto.name(),
+                    cardReadDto.currency(),
                     cardReadDto.status());
 
             cardService.updateCardBalance(cardCreateDto);

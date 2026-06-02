@@ -38,6 +38,8 @@ public class CheckOfOperationUtil {
                 operation == Operation.ADD ? cardReadDto.balance().add(amount) : cardReadDto.balance().subtract(amount),
                 cardReadDto.createdDate(),
                 cardReadDto.expireDate(),
+                cardReadDto.name(),
+                cardReadDto.currency(),
                 cardReadDto.status());
     }
 }
