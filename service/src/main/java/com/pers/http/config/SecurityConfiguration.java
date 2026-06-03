@@ -15,6 +15,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -28,21 +30,18 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})
+                .cors(cors -> {
+                })
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/clients/register").permitAll()
-                        .anyRequest().authenticated());
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(java.util.List.of("http://localhost:9090"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setAllowCredentials(true);

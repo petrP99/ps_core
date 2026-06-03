@@ -22,6 +22,7 @@ public class ReplenishmentCreateMapper implements Mapper<ReplenishmentCreateDto,
     @Override
     public Replenishment mapFrom(ReplenishmentCreateDto object) {
         return Replenishment.builder()
+                // todo зачем содержать в себе целого клиента
                 .clientTo(clientRepository.findById(object.clientId()).orElseThrow(IllegalArgumentException::new))
                 .cardNoTo(cardRepository.findById(object.cardId()).orElseThrow(IllegalArgumentException::new))
                 .amount(object.amount())

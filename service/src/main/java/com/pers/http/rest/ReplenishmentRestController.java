@@ -51,6 +51,7 @@ public class ReplenishmentRestController {
 
     @GetMapping("/cards/{cardId}")
     public ResponseEntity<?> getCardForReplenishment(@PathVariable Long cardId) {
+        replenishmentService.checkAndCreateReplenishment()
         return cardService.findById(cardId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

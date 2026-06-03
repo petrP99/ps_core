@@ -5,12 +5,10 @@ import com.pers.dto.ReplenishmentReadDto;
 import com.pers.dto.filter.ReplenishmentFilterDto;
 import com.pers.enums.Operation;
 import com.pers.enums.Status;
-import static com.pers.enums.Status.FAILED;
 import com.pers.mapper.ReplenishmentCreateMapper;
 import com.pers.mapper.ReplenishmentReadMapper;
 import com.pers.repository.CardRepository;
 import com.pers.repository.ReplenishmentRepository;
-import com.pers.util.CheckOfOperationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.pers.util.CheckOfOperationUtil.getCardUpdateBalanceDto;
 
 
 @Service
@@ -35,33 +35,30 @@ public class ReplenishmentService {
 
     @Transactional
     public boolean checkAndCreateReplenishment(ReplenishmentCreateDto replenishment) {
-        var clientReadDto = clientService.findById(replenishment.clientId()).orElseThrow();
         var cardReadDto = cardService.findById(replenishment.cardId()).orElseThrow();
+        var clientReadDto = clientService.findById(cardReadDto.clientId()).orElseThrow();
 
         if (clientReadDto.getStatus() == Status.ACTIVE && cardReadDto.status() == Status.ACTIVE) {
             create(replenishment);
-            var cardCreateDto = CheckOfOperationUtil.getCardUpdateBalanceDto(cardReadDto, replenishment.amount(), Operation.ADD);
+            var cardCreateDto = getCardUpdateBalanceDto(cardReadDto, replenishment.amount(), Operation.ADD);
             cardService.updateCardBalance(cardCreateDto);
-            var newBalance = CheckOfOperationUtil.calculateClientBalance(cardRepository.findByClientId(replenishment.clientId()));
-            var clientUpdateBalanceDto = CheckOfOperationUtil.createClientUpdateBalanceDto(clientReadDto, newBalance);
-            clientService.updateBalance(clientUpdateBalanceDto);
+            // todo обновление баланса сделать через кафку после любой операции по списанию/поплнению/оплаты
+//            var newBalance = calculateClientBalance(cardRepository.findByClientId(replenishment.clientId()));
+//            var clientUpdateBalanceDto = createClientUpdateBalanceDto(clientReadDto, newBalance);
+//            clientService.updateBalance(clientUpdateBalanceDto);
         } else {
-            var replenishmentFail = new ReplenishmentCreateDto(
-                    replenishment.clientId(),
-                    replenishment.cardId(),
+            ReplenishmentCreateDto replenishmentFail = new ReplenishmentCreateDto(
                     replenishment.amount(),
-                    replenishment.timeOfReplenishment(),
-                    FAILED);
+                    replenishment.cardId());
             create(replenishmentFail);
             return false;
         }
         return true;
     }
 
-    @Transactional
-    public ReplenishmentReadDto create(ReplenishmentCreateDto replenishmentDto) {
+    public ReplenishmentReadDto create(ReplenishmentCreateDto replenishmentDto, Status status) {
         return Optional.of(replenishmentDto)
-                .map(replenishmentCreateMapper::mapFrom)
+                .map(dto -> replenishmentCreateMapper.mapFrom(dto, status))
                 .map(replenishmentRepository::save)
                 .map(replenishmentReadMapper::mapFrom)
                 .orElseThrow();
