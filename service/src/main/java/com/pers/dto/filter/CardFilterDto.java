@@ -7,11 +7,13 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Builder
 public record CardFilterDto(
         Long id,
-        Long clientId,
+        UUID clientId,
+        UUID accountId,
         BigDecimal balance,
         LocalDate expireDate,
         String name,

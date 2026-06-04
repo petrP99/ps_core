@@ -10,14 +10,24 @@ public class TransferReadMapper implements Mapper<Transfer, TransferReadDto> {
     public TransferReadDto mapFrom(Transfer object) {
         return new TransferReadDto(
                 object.getId(),
-                object.getClientId().getId(),
-                object.getCardNoFrom().getId(),
-                object.getCardNoTo().getId(),
+                object.getFromClientId(),
+                object.getToClientId(),
+                object.getCardIdFrom(),
+                object.getCardIdTo(),
                 object.getAmount(),
                 object.getTimeOfTransfer(),
                 object.getRecipient(),
                 object.getMessage(),
-                object.getStatus()
+                object.getStatus(),
+                object.getAmountTo(),
+                object.getCurrency(),
+                object.getTargetCurrency(),
+                isExchange(object)
         );
+    }
+
+    private boolean isExchange(Transfer transfer) {
+        return transfer.getAmountTo() != null &&
+               !transfer.getAmount().equals(transfer.getAmountTo());
     }
 }

@@ -6,11 +6,12 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Value
 public class ClientReadDto {
 
-    Long id;
+    UUID id;
     Role role;
     BigDecimal balance;
     String firstName;

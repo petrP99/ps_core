@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @PaymentInfo
 public record PaymentCreateDto(
@@ -20,7 +20,7 @@ public record PaymentCreateDto(
         @NotNull(message = "amount cant be empty")
         BigDecimal amount,
 
-        Long clientId,
+        UUID clientId,
 
         Long cardId,
 

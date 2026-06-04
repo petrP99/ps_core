@@ -2,6 +2,7 @@ package com.pers.entity;
 
 import com.pers.enums.Role;
 import com.pers.enums.Status;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,8 +16,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -25,15 +26,14 @@ import java.time.LocalDateTime;
 @ToString
 @Builder
 @Entity
-public class Client implements BaseEntity<Long> {
+public class Client implements BaseEntity<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String firstName;
     private String lastName;
-    private String phone; // todo добавить в атрибуте телефона констрейт unique-user-attribute
-    private BigDecimal balance;
+    private String phone;
     private LocalDateTime createdTime;
 
     @Enumerated(EnumType.STRING)

@@ -8,6 +8,7 @@ import com.pers.dto.filter.PageResponse;
 import com.pers.http.config.CurrentClientId;
 import com.pers.service.CardService;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class CardRestController {
     private final CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<CardReadDto> create(@Validated @RequestBody CardCreateDto2 card, @CurrentClientId Long clientId) {
+    public ResponseEntity<CardReadDto> create(@Validated @RequestBody CardCreateDto2 card, @CurrentClientId UUID clientId) {
         CardReadDto createdCard = cardService.create(card, clientId);
         return ResponseEntity.ok(createdCard);
     }
@@ -53,7 +54,7 @@ public class CardRestController {
     }
 
     @GetMapping("/my")
-    public List<CardReadDto> findByClientId(@CurrentClientId Long clientId) {
+    public List<CardReadDto> findByClientId(@CurrentClientId UUID clientId) {
         cardService.checkCardExpire();
         log.warn("Получен ответ по картам профиля clientId={}", clientId);
         return cardService.findByClientId(clientId);

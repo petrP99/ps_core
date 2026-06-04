@@ -6,7 +6,6 @@ import com.pers.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -24,7 +23,6 @@ public class ClientCreateMapper implements Mapper<ClientCreateDto, Client> {
                 .firstName(object.firstName())
                 .lastName(object.lastName())
                 .phone(object.phone())
-                .balance(BigDecimal.ZERO)
                 .status(ACTIVE)
                 .createdTime(LocalDateTime.now())
                 .build();

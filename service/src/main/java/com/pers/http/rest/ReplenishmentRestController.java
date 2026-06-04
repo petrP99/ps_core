@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -39,19 +40,18 @@ public class ReplenishmentRestController {
     }
 
     @GetMapping("/my")
-    public PageResponse<ReplenishmentReadDto> clientReplenishments(ReplenishmentFilterDto filter, Pageable pageable, @CurrentClientId Long clientId) {
+    public PageResponse<ReplenishmentReadDto> clientReplenishments(ReplenishmentFilterDto filter, Pageable pageable, @CurrentClientId UUID clientId) {
         return PageResponse.of(replenishmentService.findByClientByFilter(filter, pageable, clientId));
     }
 
     @GetMapping("/cards")
-    public ResponseEntity<List<CardReadDto>> getCardsForReplenishment(@CurrentClientId Long clientId) {
+    public ResponseEntity<List<CardReadDto>> getCardsForReplenishment(@CurrentClientId UUID clientId) {
         var cards = cardService.findActiveCardsByClientId(clientId);
         return ResponseEntity.ok(cards);
     }
 
     @GetMapping("/cards/{cardId}")
     public ResponseEntity<?> getCardForReplenishment(@PathVariable Long cardId) {
-        replenishmentService.checkAndCreateReplenishment()
         return cardService.findById(cardId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

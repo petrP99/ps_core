@@ -1,7 +1,6 @@
 package com.pers.entity;
 
-
-import com.pers.enums.Status;
+import com.pers.enums.Currency;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,32 +16,34 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id", "clientId", "cardNoTo"})
+@EqualsAndHashCode(of = "id")
 @ToString
 @Builder
 @Entity
-public class Replenishment implements BaseEntity<Long> {
+public class Account implements BaseEntity<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "client_id")
-    private UUID clientId;
-
-    @Column(name = "card_no_to")
-    private Long cardNoTo;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(precision = 19, scale = 2, nullable = false)
-    private BigDecimal amount;
-    private LocalDateTime timeOfReplenishment;
+    private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    @Column(nullable = false)
+    private Currency currency;
+
+    @Column(name = "client_id", nullable = false)
+    private UUID clientId;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private Integer cashback;
 }

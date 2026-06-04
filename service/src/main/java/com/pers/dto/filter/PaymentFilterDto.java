@@ -5,13 +5,14 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 public record PaymentFilterDto(
         Long id,
         String shopName,
         BigDecimal amount,
-        Long clientId,
+        UUID clientId,
         Long cardId,
         LocalDateTime timeOfPay,
         Status status

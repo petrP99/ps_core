@@ -1,15 +1,14 @@
 package com.pers.entity;
 
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,12 +18,13 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "cardIdFrom", "cardIdTo"})
-@ToString(exclude = {"cardIdFrom", "cardIdTo"})
+@ToString
 @Builder
 @Entity
 public class Transfer implements BaseEntity<Long> {
@@ -33,23 +33,36 @@ public class Transfer implements BaseEntity<Long> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
-    private Client clientId;
+    @Column(name = "from_client_id")
+    private UUID fromClientId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_no_from")
-    private Card cardNoFrom;
+    @Column(name = "to_client_id")
+    private UUID toClientId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_no_to")
-    private Card cardNoTo;
+    @Column(name = "card_no_from")
+    private Long cardIdFrom;
+
+    @Column(name = "card_no_to")
+    private Long cardIdTo;
+
+    @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal amountTo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency")
+    private Currency currency;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_currency")
+    private Currency targetCurrency;
+
     private LocalDateTime timeOfTransfer;
     private String recipient;
     private String message;
 
     @Enumerated(EnumType.STRING)
     private Status status;
-
 }

@@ -16,6 +16,13 @@ spring:
           issuer-uri: http://localhost:8081/realms/psproject
           jwk-set-uri: http://localhost:8081/realms/psproject/protocol/openid-connect/certs
 
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      connect-timeout: 2000
+      timeout: 1000
+
   datasource:
     url: jdbc:postgresql://localhost:5432/payments_system
     username: postgres
@@ -52,3 +59,8 @@ spring:
       org:
         springframework:
           security: TRACE
+
+value:
+  exchangeRate:
+    url: https://v6.exchangerate-api.com/v6/19c0929c9d29445d4cc474aa/latest/RUB
+  comission: 0.5

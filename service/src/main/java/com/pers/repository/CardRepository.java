@@ -8,6 +8,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 public interface CardRepository extends JpaRepository<Card, Long>,
@@ -15,11 +16,13 @@ public interface CardRepository extends JpaRepository<Card, Long>,
         QuerydslPredicateExecutor<Card> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<Card> findByClientId(Long clientId);
+    List<Card> findByClientId(UUID clientId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Card> findById(Long id);
 
-    List<Card> findByClientPhone(String phone);
+//    List<Card> findByClientPhone(String phone); // todo
+
+    List<Card> findByAccountId(UUID accountId);
 
 }

@@ -5,9 +5,11 @@ import com.pers.enums.Status;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record CardReadDto(Long id,
-                          Long clientId,
+                          UUID clientId,
+                          UUID accountId,
                           BigDecimal balance,
                           LocalDate createdDate,
                           LocalDate expireDate,

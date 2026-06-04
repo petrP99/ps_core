@@ -2,7 +2,6 @@ package com.pers.repository.impl;
 
 import com.pers.dto.filter.PaymentFilterDto;
 import com.pers.entity.Payment;
-import static com.pers.entity.QPayment.payment;
 import com.pers.repository.FilterPaymentRepository;
 import com.pers.repository.predicate.QPredicate;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -13,6 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.UUID;
+
+import static com.pers.entity.QPayment.payment;
 
 @RequiredArgsConstructor
 public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
@@ -23,10 +25,10 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
     public Page<Payment> findAllByFilter(PaymentFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), payment.id::eq)
-                .add(filter.clientId(), payment.client.id::eq)
+                .add(filter.clientId(), payment.clientId::eq)
                 .add(filter.shopName(), payment.shopName::containsIgnoreCase)
                 .add(filter.amount(), payment.amount::eq)
-                .add(filter.cardId(), payment.card.id::eq)
+//                .add(filter.cardId(), payment.card::) // todo
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 
@@ -45,13 +47,13 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
     }
 
     @Override
-    public Page<Payment> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, Long clientId) {
+    public Page<Payment> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, UUID clientId) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), payment.id::eq)
-                .add(clientId, payment.client.id::eq)
+                .add(clientId, payment.clientId::eq)
                 .add(filter.shopName(), payment.shopName::containsIgnoreCase)
                 .add(filter.amount(), payment.amount::eq)
-                .add(filter.cardId(), payment.card.id::eq)
+//                .add(filter.cardId(), payment.cardId::eq) // todo
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 

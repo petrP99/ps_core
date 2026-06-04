@@ -15,8 +15,8 @@ public class PaymentReadMapper implements Mapper<Payment, PaymentReadDto> {
                 object.getId(),
                 object.getShopName(),
                 object.getAmount(),
-                object.getClient().getId(),
-                object.getCard().getId(),
+                object.getClientId(),
+                object.getCardId(),
                 object.getTimeOfPay(),
                 object.getStatus()
         );

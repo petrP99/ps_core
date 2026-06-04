@@ -13,8 +13,8 @@ public class ReplenishmentReadMapper implements Mapper<Replenishment, Replenishm
     public ReplenishmentReadDto mapFrom(Replenishment object) {
         return new ReplenishmentReadDto(
                 object.getId(),
-                object.getClientTo().getId(),
-                object.getCardNoTo().getId(),
+                object.getClientId(),
+                object.getCardNoTo(),
                 object.getAmount(),
                 object.getTimeOfReplenishment(),
                 object.getStatus()

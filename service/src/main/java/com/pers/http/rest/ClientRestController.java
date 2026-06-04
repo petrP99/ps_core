@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -40,14 +41,14 @@ public class ClientRestController {
     private final CardService cardService;
 
     @PutMapping("/update")
-    public ResponseEntity<ClientReadDto> update(@CurrentClientId Long clientId, @RequestBody @Validated ClientCreateDto client) {
+    public ResponseEntity<ClientReadDto> update(@CurrentClientId UUID clientId, @RequestBody @Validated ClientCreateDto client) {
         return clientService.update(clientId, client)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<ClientReadDto> findById(@CurrentClientId Long clientId) {
+    public ResponseEntity<ClientReadDto> findById(@CurrentClientId UUID clientId) {
         log.warn("Получен ответ по данным профиля clientId={}", clientId);
         return clientService.findById(clientId)
                 .map(ResponseEntity::ok)
@@ -56,7 +57,7 @@ public class ClientRestController {
 
     // todo для вывода баланса на экран
     @GetMapping("/myBalance")
-    public ResponseEntity<BigDecimal> getActiveCardsWithBalance(@CurrentClientId Long clientId) {
+    public ResponseEntity<BigDecimal> getActiveCardsWithBalance(@CurrentClientId UUID clientId) {
         log.warn("Получен баланс профиля clientId={}", clientId);
         BigDecimal balance = cardService.findActiveCardsAndPositiveBalanceByClientId(clientId).stream()
                 .map(CardReadDto::balance)
@@ -70,7 +71,7 @@ public class ClientRestController {
 
     @PutMapping("/{id}/admin")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public ResponseEntity<ClientReadDto> updateByAdmin(@PathVariable("id") Long id, @RequestBody @Validated ClientCreateDto client) {
+    public ResponseEntity<ClientReadDto> updateByAdmin(@PathVariable("id") UUID id, @RequestBody @Validated ClientCreateDto client) {
         return clientService.update(id, client)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
@@ -79,7 +80,7 @@ public class ClientRestController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public void delete(@PathVariable("id") Long id) {
+    public void delete(@PathVariable("id") UUID id) {
         if (!clientService.delete(id)) {
             throw new ResponseStatusException(NOT_FOUND);
         }

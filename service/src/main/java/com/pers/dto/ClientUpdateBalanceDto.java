@@ -10,11 +10,12 @@ import lombok.experimental.FieldNameConstants;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @ClientInfo
 @FieldNameConstants
 public record ClientUpdateBalanceDto(
-        Long id,
+        UUID id,
         @PositiveOrZero
         BigDecimal balance,
         @NotBlank(message = "")

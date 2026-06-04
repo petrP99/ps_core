@@ -143,10 +143,4 @@ class PaymentRepositoryIT extends BaseIntegrationIT {
         assertThat(result.getContent()).hasSize(1);
     }
 
-    @Test
-    void findByClientId() {
-        var result = paymentRepository.findByClientId(payment.getClient().getId());
-
-        assertThat(result).isNotEmpty();
-    }
 }

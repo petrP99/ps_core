@@ -6,9 +6,11 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record CardUpdateBalanceDto(Long id,
-                                   Long clientId,
+                                   UUID clientId,
+                                   UUID accountId,
                                    @PositiveOrZero
                                    BigDecimal balance,
                                    LocalDate createdDate,

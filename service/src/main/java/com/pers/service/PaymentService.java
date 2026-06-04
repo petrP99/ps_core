@@ -9,6 +9,7 @@ import com.pers.enums.Status;
 import static com.pers.enums.Status.FAILED;
 import com.pers.mapper.PaymentCreateMapper;
 import com.pers.mapper.PaymentReadMapper;
+import com.pers.repository.AccountRepository;
 import com.pers.repository.CardRepository;
 import com.pers.repository.PaymentRepository;
 import com.pers.util.CheckOfOperationUtil;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
@@ -31,6 +33,7 @@ public class PaymentService {
     private final ClientService clientService;
     private final CardService cardService;
     private final CardRepository cardRepository;
+    private final AccountRepository accountRepository;
 
     @Transactional
     public boolean checkAndCreatePayment(PaymentCreateDto payment) {
@@ -46,6 +49,7 @@ public class PaymentService {
             var cardCreateDto = new CardUpdateBalanceDto(
                     cardReadDto.id(),
                     cardReadDto.clientId(),
+                    cardReadDto.accountId(),
                     cardReadDto.balance().subtract(amount),
                     cardReadDto.createdDate(),
                     cardReadDto.expireDate(),
@@ -55,7 +59,7 @@ public class PaymentService {
 
             cardService.updateCardBalance(cardCreateDto);
 
-            var newBalance = CheckOfOperationUtil.calculateClientBalance(cardRepository.findByClientId(payment.clientId()));
+            var newBalance = CheckOfOperationUtil.calculateClientBalance(cardRepository.findByClientId(payment.clientId()), accountRepository);
             var clientUpdateBalanceDto = CheckOfOperationUtil.createClientUpdateBalanceDto(clientReadDto, newBalance);
 
             clientService.updateBalance(clientUpdateBalanceDto);
@@ -98,7 +102,7 @@ public class PaymentService {
                 .map(paymentReadMapper::mapFrom);
     }
 
-    public Page<PaymentReadDto> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, Long clientId) {
+    public Page<PaymentReadDto> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, UUID clientId) {
         return paymentRepository.findAllByClientByFilter(filter, pageable, clientId)
                 .map(paymentReadMapper::mapFrom);
     }

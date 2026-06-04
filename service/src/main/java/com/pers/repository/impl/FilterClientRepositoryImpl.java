@@ -28,7 +28,6 @@ public class FilterClientRepositoryImpl implements FilterClientRepository {
                 .add(filter.firstName(), client.firstName::containsIgnoreCase)
                 .add(filter.lastName(), client.lastName::containsIgnoreCase)
                 .add(filter.phone(), client.phone::containsIgnoreCase)
-                .add(filter.balance(), client.balance::eq)
                 .buildAnd();
 
         var query = new JPAQuery<Client>(entityManager)

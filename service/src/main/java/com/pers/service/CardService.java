@@ -5,11 +5,13 @@ import com.pers.dto.CardCreateDto2;
 import com.pers.dto.CardReadDto;
 import com.pers.dto.CardUpdateBalanceDto;
 import com.pers.dto.filter.CardFilterDto;
+import com.pers.entity.Client;
 import com.pers.enums.Status;
 import com.pers.mapper.CardCreateMapper;
 import com.pers.mapper.CardReadMapper;
 import com.pers.mapper.CardUpdateBalanceMapper;
 import com.pers.repository.CardRepository;
+import com.pers.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -32,6 +35,7 @@ public class CardService {
     private final CardReadMapper cardReadMapper;
     private final CardCreateMapper cardCreateMapper;
     private final CardUpdateBalanceMapper cardUpdateBalanceMapper;
+    private final ClientRepository clientRepository;
 
     public Optional<CardReadDto> findById(Long id) {
         return cardRepository.findById(id)
@@ -46,7 +50,7 @@ public class CardService {
                 .orElseThrow();
     }
 
-    public CardReadDto create(CardCreateDto2 cardDto, Long clientId) {
+    public CardReadDto create(CardCreateDto2 cardDto, UUID clientId) {
         return Optional.of(cardDto)
                 .map(dto -> cardCreateMapper.mapFrom(dto, clientId))
                 .map(cardRepository::save)
@@ -85,13 +89,13 @@ public class CardService {
                 .orElse(false);
     }
 
-    public List<CardReadDto> findByClientId(Long clientId) {
+    public List<CardReadDto> findByClientId(UUID clientId) {
         return cardRepository.findByClientId(clientId).stream()
                 .map(cardReadMapper::mapFrom)
                 .toList();
     }
 
-    public List<CardReadDto> findActiveCardsAndPositiveBalanceByClientId(Long clientId) {
+    public List<CardReadDto> findActiveCardsAndPositiveBalanceByClientId(UUID clientId) {
         return cardRepository.findByClientId(clientId).stream()
                 .map(cardReadMapper::mapFrom)
                 .filter(dto -> dto.status() == Status.ACTIVE && dto.balance().compareTo(BigDecimal.ZERO) > 0)
@@ -99,7 +103,9 @@ public class CardService {
     }
 
     public Optional<CardReadDto> findCardByClientPhone(String phone) {
-        return cardRepository.findByClientPhone(phone).stream()
+        Optional<Client> byPhone = Optional.of(clientRepository.findByPhone(phone)
+                .orElseThrow(() -> new RuntimeException("Клиент по такому номер не найден")));
+        return cardRepository.findByClientId(byPhone.get().getId()).stream()
                 .map(cardReadMapper::mapFrom)
                 .filter(card -> card.status() == Status.ACTIVE)
                 .findFirst();
@@ -110,10 +116,16 @@ public class CardService {
                 .map(cardReadMapper::mapFrom);
     }
 
-    public List<CardReadDto> findActiveCardsByClientId(Long clientId) {
+    public List<CardReadDto> findActiveCardsByClientId(UUID clientId) {
         return cardRepository.findByClientId(clientId).stream()
                 .map(cardReadMapper::mapFrom)
                 .filter(dto -> dto.status() == Status.ACTIVE)
+                .toList();
+    }
+
+    public List<CardReadDto> findByAccountId(UUID accountId) {
+        return cardRepository.findByAccountId(accountId).stream()
+                .map(cardReadMapper::mapFrom)
                 .toList();
     }
 

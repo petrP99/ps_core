@@ -1,7 +1,6 @@
 package com.pers.http.handler;
 
 import com.pers.http.config.CurrentClientId;
-import com.pers.mapper.ClientCreateMapper;
 import com.pers.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
@@ -17,17 +16,17 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class CurrentClientIdArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final ClientService clientService;
-    private final ClientCreateMapper clientCreateMapper;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentClientId.class) && parameter.getParameterType().equals(Long.class);
+        return parameter.hasParameterAnnotation(CurrentClientId.class) && parameter.getParameterType().equals(UUID.class);
     }
 
     @Override
@@ -44,4 +43,3 @@ public class CurrentClientIdArgumentResolver implements HandlerMethodArgumentRes
         return clientService.getIdFromSuccessAuth(clientIdClaim);
     }
 }
-

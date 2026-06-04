@@ -5,11 +5,12 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 public record ReplenishmentFilterDto(
         Long id,
-        Long clientId,
+        UUID clientId,
         Long cardNo,
         BigDecimal amount,
         LocalDateTime timeOfReplenishment,

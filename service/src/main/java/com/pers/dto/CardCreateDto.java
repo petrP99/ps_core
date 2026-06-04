@@ -7,8 +7,10 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
-public record CardCreateDto(Long clientId,
+public record CardCreateDto(UUID clientId,
+                            UUID accountId,
                             @PositiveOrZero
                             BigDecimal balance,
                             LocalDate createdDate,

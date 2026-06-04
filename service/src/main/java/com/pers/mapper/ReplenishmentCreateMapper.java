@@ -2,32 +2,33 @@ package com.pers.mapper;
 
 import com.pers.dto.ReplenishmentCreateDto;
 import com.pers.entity.Replenishment;
-import static com.pers.enums.Status.FAILED;
-import static com.pers.enums.Status.SUCCESS;
-import com.pers.repository.CardRepository;
-import com.pers.repository.ClientRepository;
+import com.pers.enums.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class ReplenishmentCreateMapper implements Mapper<ReplenishmentCreateDto, Replenishment> {
+public class ReplenishmentCreateMapper {
 
-    private final ClientRepository clientRepository;
-    private final CardRepository cardRepository;
-
-    @Override
-    public Replenishment mapFrom(ReplenishmentCreateDto object) {
+    public Replenishment mapFrom(ReplenishmentCreateDto object, Status status) {
         return Replenishment.builder()
-                // todo зачем содержать в себе целого клиента
-                .clientTo(clientRepository.findById(object.clientId()).orElseThrow(IllegalArgumentException::new))
-                .cardNoTo(cardRepository.findById(object.cardId()).orElseThrow(IllegalArgumentException::new))
+                .cardNoTo(object.cardId())
                 .amount(object.amount())
                 .timeOfReplenishment(LocalDateTime.now())
-                .status(object.status() == null ? SUCCESS : FAILED)
+                .status(status)
+                .build();
+    }
+
+    public Replenishment mapFrom(ReplenishmentCreateDto object, Status status, UUID clientId) {
+        return Replenishment.builder()
+                .clientId(clientId)
+                .cardNoTo(object.cardId())
+                .amount(object.amount())
+                .timeOfReplenishment(LocalDateTime.now())
+                .status(status)
                 .build();
     }
 }

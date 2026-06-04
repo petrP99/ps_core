@@ -14,7 +14,7 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void sendTransferCreateEvent(TransferCreateDto dto) {
-        kafkaTemplate.send("ps-transfer-create", dto.getClientId().toString(), dto);
+        kafkaTemplate.send("ps-transfer-create", dto.getFromClientId().toString(), dto);
         log.info("Sent transfer create event: {}", dto);
     }
 

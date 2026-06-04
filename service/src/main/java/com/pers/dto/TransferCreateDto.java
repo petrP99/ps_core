@@ -1,5 +1,6 @@
 package com.pers.dto;
 
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
 import com.pers.validation.TransferInfo;
 import jakarta.validation.constraints.Positive;
@@ -9,8 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -21,7 +22,8 @@ public class TransferCreateDto {
 
     @Positive
     private BigDecimal amount;
-    private Long clientId;
+    private UUID fromClientId;
+    private UUID toClientId;
     private Long cardIdFrom;
     private Long cardIdTo;
     private LocalDateTime time;
@@ -29,4 +31,10 @@ public class TransferCreateDto {
     private String message;
     private Status status;
     private Long id;
+
+    // Сумма, которую МЫ ДОБАВИЛИ на счет получателя
+    private BigDecimal amountTo;
+
+    private Currency currency;
+    private Currency targetCurrency;
 }

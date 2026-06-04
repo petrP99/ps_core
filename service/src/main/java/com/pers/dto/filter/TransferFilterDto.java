@@ -5,11 +5,13 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 public record TransferFilterDto(
         Long id,
-        Long clientId,
+        UUID fromClientId,
+        UUID toClientId,
         Long cardNoFrom,
         Long cardNoTo,
         BigDecimal amount,

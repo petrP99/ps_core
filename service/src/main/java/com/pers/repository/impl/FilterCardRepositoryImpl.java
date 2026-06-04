@@ -23,8 +23,7 @@ public class FilterCardRepositoryImpl implements FilterCardRepository {
     public Page<Card> findAllByFilter(CardFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), card.id::eq)
-                .add(filter.clientId(), card.client.id::eq)
-                .add(filter.balance(), card.balance::eq)
+                .add(filter.clientId(), card.clientId::eq)
                 .add(filter.expireDate(), card.expireDate::before)
                 .add(filter.status(), card.status::eq)
                 .buildAnd();

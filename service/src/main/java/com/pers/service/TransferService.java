@@ -12,6 +12,7 @@ import com.pers.enums.Operation;
 import com.pers.enums.Status;
 import com.pers.mapper.TransferCreateMapper;
 import com.pers.mapper.TransferReadMapper;
+import com.pers.repository.AccountRepository;
 import com.pers.repository.CardRepository;
 import com.pers.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.pers.enums.Status.FAILED;
 import static com.pers.enums.Status.IN_PROGRESS;
@@ -44,6 +46,7 @@ public class TransferService {
     private final ClientService clientService;
     private final CardService cardService;
     private final CardRepository cardRepository;
+    private final AccountRepository accountRepository;
     private final KafkaProducerService kafkaProducerService;
 
     // метода запускающийся при создании перевода
@@ -106,7 +109,7 @@ public class TransferService {
                 .orElse(false);
     }
 
-    public Page<TransferReadDto> findAllByClientByFilter(TransferFilterDto filter, Pageable pageable, Long clientId) {
+    public Page<TransferReadDto> findAllByClientByFilter(TransferFilterDto filter, Pageable pageable, UUID clientId) {
         return transferRepository.findAllByClientByFilter(filter, pageable, clientId)
                 .map(transferReadMapper::mapFrom);
     }
@@ -140,7 +143,7 @@ public class TransferService {
                 };
 
         cardService.updateCardBalance(cardUpdateBalanceDto);
-        BigDecimal clientBalance = calculateClientBalance(cardRepository.findByClientId(client.getId()));
+        BigDecimal clientBalance = calculateClientBalance(cardRepository.findByClientId(client.getId()), accountRepository);
         ClientUpdateBalanceDto clientFromUpdateDto = createClientUpdateBalanceDto(client, clientBalance);
         clientService.updateBalance(clientFromUpdateDto);
     }

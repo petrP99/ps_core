@@ -14,7 +14,6 @@ public class ClientUpdateBalanceMapper implements Mapper<ClientUpdateBalanceDto,
     public Client mapFrom(ClientUpdateBalanceDto object) {
         return Client.builder()
                 .id(object.id())
-                .balance(object.balance())
                 .firstName(object.firstName())
                 .lastName(object.lastName())
                 .phone(object.phone())

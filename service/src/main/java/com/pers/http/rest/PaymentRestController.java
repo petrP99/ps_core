@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @Slf4j
@@ -39,12 +40,12 @@ public class PaymentRestController {
     }
 
     @GetMapping("/my")
-    public PageResponse<PaymentReadDto> clientPayments(PaymentFilterDto filter, Pageable pageable, @CurrentClientId Long clientId) {
+    public PageResponse<PaymentReadDto> clientPayments(PaymentFilterDto filter, Pageable pageable, @CurrentClientId UUID clientId) {
         return PageResponse.of(paymentService.findAllByClientByFilter(filter, pageable, clientId));
     }
 
     @GetMapping("/getCards")
-    public ResponseEntity<List<CardReadDto>> getCardsForPayment(@CurrentClientId Long clientId) {
+    public ResponseEntity<List<CardReadDto>> getCardsForPayment(@CurrentClientId UUID clientId) {
         var cards = cardService.findActiveCardsAndPositiveBalanceByClientId(clientId);
         return ResponseEntity.ok(cards);
     }

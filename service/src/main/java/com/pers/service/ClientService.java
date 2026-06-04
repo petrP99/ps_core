@@ -15,8 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -28,19 +30,26 @@ public class ClientService {
     private final ClientReadMapper clientReadMapper;
     private final ClientCreateMapper clientCreateMapper;
     private final ClientUpdateBalanceMapper clientUpdateBalanceMapper;
+    private final AccountService accountService;
 
     public Page<ClientReadDto> findAll(ClientFilterDto filter, Pageable pageable) {
         return clientRepository.findAllByFilter(filter, pageable)
-                .map(clientReadMapper::mapFrom);
+                .map(client -> {
+                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
+                    return clientReadMapper.mapFrom(client, balance);
+                });
     }
 
-    public String findFirstAndLastNameByClientId(Long id) {
+    public String findFirstAndLastNameByClientId(UUID id) {
         return clientRepository.findFirstAndLastNameByClientId(id);
     }
 
-    public Optional<ClientReadDto> findById(Long id) {
+    public Optional<ClientReadDto> findById(UUID id) {
         return clientRepository.findById(id)
-                .map(clientReadMapper::mapFrom);
+                .map(client -> {
+                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
+                    return clientReadMapper.mapFrom(client, balance);
+                });
     }
 
     @Transactional
@@ -48,16 +57,22 @@ public class ClientService {
         return Optional.of(clientDto)
                 .map(clientCreateMapper::mapFrom)
                 .map(clientRepository::save)
-                .map(clientReadMapper::mapFrom)
+                .map(client -> {
+                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
+                    return clientReadMapper.mapFrom(client, balance);
+                })
                 .orElseThrow();
     }
 
     @Transactional
-    public Optional<ClientReadDto> update(Long id, ClientCreateDto clientDto) {
+    public Optional<ClientReadDto> update(UUID id, ClientCreateDto clientDto) {
         return clientRepository.findById(id)
                 .map(entity -> clientCreateMapper.map(clientDto, entity))
                 .map(clientRepository::saveAndFlush)
-                .map(clientReadMapper::mapFrom);
+                .map(client -> {
+                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
+                    return clientReadMapper.mapFrom(client, balance);
+                });
     }
 
     @Transactional
@@ -65,12 +80,15 @@ public class ClientService {
         return Optional.of(clientDto)
                 .map(clientUpdateBalanceMapper::mapFrom)
                 .map(clientRepository::saveAndFlush)
-                .map(clientReadMapper::mapFrom)
+                .map(client -> {
+                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
+                    return clientReadMapper.mapFrom(client, balance);
+                })
                 .orElseThrow();
     }
 
     @Transactional
-    public boolean delete(Long id) {
+    public boolean delete(UUID id) {
         return clientRepository.findById(id)
                 .map(entity -> {
                     clientRepository.delete(entity);
@@ -82,7 +100,10 @@ public class ClientService {
 
     public Optional<ClientReadDto> findByPhone(String phone) {
         return clientRepository.findByPhone(phone)
-                .map(clientReadMapper::mapFrom);
+                .map(client -> {
+                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
+                    return clientReadMapper.mapFrom(client, balance);
+                });
     }
 
     public Optional<Client> findByPhoneEntity(String phone) {
@@ -90,7 +111,7 @@ public class ClientService {
     }
 
     @Transactional
-    public Long getIdFromSuccessAuth(Map<String, Object> attributes) {
+    public UUID getIdFromSuccessAuth(Map<String, Object> attributes) {
         ClientCreateDto createDto = clientCreateMapper.mapToDto(attributes);
 
         return clientRepository.findByPhone(createDto.phone())

@@ -3,14 +3,13 @@ package com.pers.dto.filter;
 import com.pers.enums.Status;
 import lombok.Builder;
 
-import java.math.BigDecimal;
+import java.util.UUID;
 
 @Builder
 public record ClientFilterDto(
-        Long id,
+        UUID id,
         String firstName,
         String lastName,
-        BigDecimal balance,
         String phone,
         Status status) {
 }
