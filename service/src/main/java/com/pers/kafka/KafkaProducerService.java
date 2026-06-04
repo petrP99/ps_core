@@ -1,4 +1,4 @@
-package com.pers.service;
+package com.pers.kafka;
 
 import com.pers.dto.TransferCreateDto;
 import lombok.RequiredArgsConstructor;

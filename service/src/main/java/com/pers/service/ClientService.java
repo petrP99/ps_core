@@ -1,10 +1,12 @@
 package com.pers.service;
 
+import com.pers.dto.AccountCreateDto;
 import com.pers.dto.ClientCreateDto;
 import com.pers.dto.ClientReadDto;
 import com.pers.dto.ClientUpdateBalanceDto;
 import com.pers.dto.filter.ClientFilterDto;
 import com.pers.entity.Client;
+import com.pers.enums.Currency;
 import com.pers.mapper.ClientCreateMapper;
 import com.pers.mapper.ClientReadMapper;
 import com.pers.mapper.ClientUpdateBalanceMapper;
@@ -19,6 +21,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.pers.util.constant.Constants.ACCOUNT_NAME;
 
 
 @Service
@@ -106,16 +110,17 @@ public class ClientService {
                 });
     }
 
-    public Optional<Client> findByPhoneEntity(String phone) {
-        return clientRepository.findByPhone(phone);
-    }
-
     @Transactional
     public UUID getIdFromSuccessAuth(Map<String, Object> attributes) {
         ClientCreateDto createDto = clientCreateMapper.mapToDto(attributes);
+        AccountCreateDto defaultAccount = new AccountCreateDto(Currency.RUB, ACCOUNT_NAME);
 
         return clientRepository.findByPhone(createDto.phone())
                 .map(Client::getId)
-                .orElseGet(() -> create(createDto).getId());
+                .orElseGet(() -> {
+                    UUID clientId = create(createDto).getId();
+                    accountService.create(defaultAccount, clientId);
+                    return clientId;
+                });
     }
 }

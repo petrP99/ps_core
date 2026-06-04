@@ -59,10 +59,9 @@ public class Transfer implements BaseEntity<Long> {
     @Column(name = "target_currency")
     private Currency targetCurrency;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
     private LocalDateTime timeOfTransfer;
     private String recipient;
     private String message;
-
-    @Enumerated(EnumType.STRING)
-    private Status status;
 }

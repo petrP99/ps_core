@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS account
     balance   NUMERIC(19, 2) DEFAULT 0    NOT NULL,
     currency  VARCHAR(10)                 NOT NULL,
     name      VARCHAR(50)                 NOT NULL DEFAULT 'Счет',
-    cashback  INTEGER        DEFAULT 0    NOT NULL
+    cashback  INTEGER        DEFAULT 0
 );
 --rollback DROP TABLE account;
 

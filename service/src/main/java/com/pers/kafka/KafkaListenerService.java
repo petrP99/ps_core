@@ -1,6 +1,7 @@
-package com.pers.service;
+package com.pers.kafka;
 
 import com.pers.dto.TransferCreateDto;
+import com.pers.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

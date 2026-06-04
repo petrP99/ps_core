@@ -44,6 +44,6 @@ public class Account implements BaseEntity<UUID> {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer cashback;
 }
