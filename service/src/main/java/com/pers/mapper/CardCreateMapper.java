@@ -5,7 +5,6 @@ import com.pers.dto.request.CardRequestDto;
 import com.pers.entity.Card;
 import com.pers.enums.Status;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -32,13 +31,14 @@ public class CardCreateMapper implements Mapper<CardRequestDto, Card>, MapperSta
                 .build();
     }
 
-    public Card toEntity(CardRequestDto object, UUID clientId, String cardNumber) {
+    public Card toEntity(CardRequestDto cardDto, UUID clientId, String cardNumber) {
         return Card.builder()
                 .clientId(clientId)
+                .accountId(cardDto.accountId())
                 .createdDate(LocalDate.now())
                 .expireDate(LocalDate.now().plusYears(YEARS_TO_EXPIRED))
-                .name(object.name())
-                .currency(object.currency())
+                .name(cardDto.name())
+                .currency(cardDto.currency())
                 .status(Status.ACTIVE)
                 .cardNumber(cardNumber)
                 .build();

@@ -3,16 +3,14 @@ package com.pers.service;
 import com.pers.dto.request.CardRequestDto;
 import com.pers.dto.response.CardResponseDto;
 import com.pers.entity.Card;
+import com.pers.enums.Status;
 import com.pers.mapper.CardCreateMapper;
-import com.pers.mapper.CardReadMapper;
 import com.pers.repository.CardRepository;
-import com.pers.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,10 +27,7 @@ import static com.pers.util.constant.Constants.DEFAULT_CARD_NUMBER_PREFIX;
 public class CardService {
 
     private final CardRepository cardRepository;
-    private final CardReadMapper cardReadMapper;
     private final CardCreateMapper cardCreateMapper;
-    private final ClientRepository clientRepository;
-    private final AccountService accountService;
 
     public Optional<CardResponseDto> findByNumber(String number) {
         return cardRepository.findByNumber(number);
@@ -41,14 +36,6 @@ public class CardService {
     public Optional<CardResponseDto> findById(UUID id) {
         return cardRepository.findCardWithBalanceById(id);
     }
-
-
-//    public Optional<CardResponseDto> updateStatusToBlocked(CardResponseDto cardDto) {
-//        return Optional.of(cardDto)
-//                .map(cardCreateMapper::mapStatusToBlocked)
-//                .map(cardRepository::saveAndFlush)
-//                .map(cardReadMapper::toDto);
-//    }
 
     public void updateStatusToExpired(CardResponseDto cardDto) {
         Optional.of(cardDto)
@@ -67,12 +54,7 @@ public class CardService {
     }
 
     public List<CardResponseDto> findByClientId(UUID clientId) {
-        return cardRepository.findByClientId(clientId).stream()
-                .map(card -> {
-                    BigDecimal balance = accountService.getBalanceById(card.getAccountId());
-                    return cardReadMapper.toDto(card, balance);
-                })
-                .toList();
+        return cardRepository.findCardsWithBalanceByClientId(clientId);
     }
 
 //    public List<CardResponseDto> findActiveCardsAndPositiveBalanceByClientId(UUID clientId) {
@@ -138,7 +120,7 @@ public class CardService {
                 dto.name(), clientId, dto.currency(), dto.isPremium());
 
         String prefix = CURRENCY_PREFIXES.getOrDefault(dto.currency(), DEFAULT_CARD_NUMBER_PREFIX);
-        String cardNumber = generateUniqueCardNumber(prefix, dto.isPremium());
+        String cardNumber = generateUniqueCardNumber(prefix, Boolean.TRUE.equals(dto.isPremium()));
         Card card = cardCreateMapper.toEntity(dto, clientId, cardNumber);
         Card savedCard = cardRepository.save(card);
         return cardRepository.findByNumber(savedCard.getCardNumber()).orElseThrow();
@@ -156,45 +138,57 @@ public class CardService {
     private String generateRegular(String prefix) {
         StringBuilder sb = new StringBuilder(prefix);
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < CARD_NUMBER_LENGTH; i++) {
-            sb.append(random.nextInt(CARD_NUMBER_LENGTH));
+        for (int i = prefix.length(); i < CARD_NUMBER_LENGTH; i++) {
+            sb.append(random.nextInt(10));
         }
         return sb.toString();
     }
 
     private String generateBeautiful(String prefix) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        int patternType = random.nextInt(3);
-
-        return switch (patternType) {
-            case 0 -> generateGoldenTail(prefix, random);     // Концовка 8888
-            case 1 -> generateDoubleTriple(prefix, random);   // Концовка 111 222
-            default -> generateRegular(prefix);
-        };
+        return random.nextBoolean()
+                ? generateGoldenTail(prefix, random)
+                : generateDoubleTriple(prefix, random);
     }
 
-    // 6 случайных + 4 одинаковых (8888)
+    // Случайная часть + 4 одинаковых цифры в конце.
     private String generateGoldenTail(String prefix, ThreadLocalRandom random) {
         StringBuilder sb = new StringBuilder(prefix);
-        for (int i = 0; i < 6; i++) {
-            sb.append(random.nextInt(CARD_NUMBER_LENGTH));
+        int randomPartLength = CARD_NUMBER_LENGTH - prefix.length() - 4;
+        for (int i = 0; i < randomPartLength; i++) {
+            sb.append(random.nextInt(10));
         }
-        char digit = (char) (random.nextInt(CARD_NUMBER_LENGTH) + '0');
+        char digit = (char) (random.nextInt(1, 10) + '0');
         sb.append(String.valueOf(digit).repeat(4));
         return sb.toString();
     }
 
-    // 4 случайных + 3 одинаковых + 3 одинаковых (111222)
+    // Случайная часть + две разные группы по 3 одинаковых цифры.
     private String generateDoubleTriple(String prefix, ThreadLocalRandom random) {
         StringBuilder sb = new StringBuilder(prefix);
-        for (int i = 0; i < 4; i++) {
-            sb.append(random.nextInt(CARD_NUMBER_LENGTH));
+        int randomPartLength = CARD_NUMBER_LENGTH - prefix.length() - 6;
+        for (int i = 0; i < randomPartLength; i++) {
+            sb.append(random.nextInt(10));
         }
-        int d1 = random.nextInt(CARD_NUMBER_LENGTH);
-        int d2 = random.nextInt(CARD_NUMBER_LENGTH);
+        int d1 = random.nextInt(10);
+        int d2;
+        do {
+            d2 = random.nextInt(10);
+        } while (d2 == d1);
         sb.append(String.valueOf(d1).repeat(3));
         sb.append(String.valueOf(d2).repeat(3));
         return sb.toString();
+    }
+
+    @Transactional
+    public CardResponseDto blockById(UUID id) {
+        cardRepository.findById(id).ifPresent(card -> {
+            card.setStatus(Status.BLOCKED);
+            cardRepository.flush();
+        });
+
+        return cardRepository.findCardWithBalanceById(id)
+                .orElseThrow();
     }
 }
 

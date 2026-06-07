@@ -43,13 +43,14 @@ CREATE TABLE IF NOT EXISTS card
 --changeset pers:5
 CREATE TABLE IF NOT EXISTS payment
 (
-    id               BIGSERIAL PRIMARY KEY,
-    shop_name        VARCHAR(128)   NOT NULL,
-    amount           NUMERIC(19, 2) NOT NULL,
-    pay_by_client_id UUID           NOT NULL REFERENCES client (id),
-    card_no          VARCHAR(16)    NOT NULL REFERENCES card (card_number),
-    time_of_pay      TIMESTAMP      NOT NULL,
-    status           VARCHAR(20)    NOT NULL
+    id          BIGSERIAL PRIMARY KEY,
+    client_id   UUID           NOT NULL REFERENCES client (id),
+    card_no     VARCHAR(16)    NOT NULL REFERENCES card (card_number),
+    time_of_pay TIMESTAMP      NOT NULL,
+    amount      NUMERIC(19, 2) NOT NULL,
+    status      VARCHAR(20)    NOT NULL,
+    recipient   VARCHAR(255),
+    shop_name   VARCHAR(255)   NOT NULL
 );
 --rollback DROP TABLE payment;
 
@@ -59,8 +60,8 @@ CREATE TABLE IF NOT EXISTS transfer
     id               BIGSERIAL PRIMARY KEY,
     from_client_id   UUID           NOT NULL REFERENCES client (id),
     to_client_id     UUID           NOT NULL REFERENCES client (id),
-    card_from     VARCHAR(16)    NOT NULL REFERENCES card (card_number),
-    card_to       VARCHAR(16)    NOT NULL REFERENCES card (card_number),
+    card_from        VARCHAR(16)    NOT NULL REFERENCES card (card_number),
+    card_to          VARCHAR(16)    NOT NULL REFERENCES card (card_number),
     amount           NUMERIC(19, 2) NOT NULL,
     amount_to        NUMERIC(19, 2),
     currency         VARCHAR(10),

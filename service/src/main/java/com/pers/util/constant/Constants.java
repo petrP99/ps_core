@@ -13,7 +13,7 @@ public class Constants {
             Currency.CNY, "620099"
     );
     public static final  String DEFAULT_CARD_NUMBER_PREFIX = "400000";
-    public static final int CARD_NUMBER_LENGTH = 10;
+    public static final int CARD_NUMBER_LENGTH = 16;
     public static final long YEARS_TO_EXPIRED = 5L;
 
 }

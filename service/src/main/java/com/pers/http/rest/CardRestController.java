@@ -38,13 +38,11 @@ public class CardRestController {
         return ResponseEntity.ok(createdCard);
     }
 
-//    @GetMapping("/{id}/block")
-//    public ResponseEntity<CardResponseDto> block(@PathVariable UUID id) {
-//        return cardService.findByNumber(id)
-//                .flatMap(cardService::updateStatusToBlocked)
-//                .map(ResponseEntity::ok)
-//                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-//    }
+    @PostMapping("/{id}/block")
+    public ResponseEntity<CardResponseDto> block(@PathVariable UUID id) {
+        CardResponseDto card = cardService.blockById(id);
+        return ResponseEntity.ok(card);
+    }
 
     @GetMapping("/my")
     public List<CardResponseDto> findByClientId(@CurrentClientId UUID clientId) {

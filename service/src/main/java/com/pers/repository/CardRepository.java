@@ -19,17 +19,18 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
     List<Card> findByClientId(UUID clientId);
 
     @Query("""
-                SELECT 
-                    c.id as id, 
-                    c.clientId as clientId, 
-                    c.accountId as accountId, 
-                    c.createdDate as createdDate, 
-                    c.expireDate as expireDate, 
-                    c.name as name, 
-                    c.currency as currency, 
-                    c.status as status, 
-                    a.balance as balance,
-                    c.cardNumber as cardNumber 
+                SELECT new com.pers.dto.response.CardResponseDto(
+                    c.id,
+                    c.clientId,
+                    c.accountId,
+                    a.balance,
+                    c.createdDate,
+                    c.expireDate,
+                    c.name,
+                    c.currency,
+                    c.status,
+                    c.cardNumber
+                )
                 FROM Card c
                 JOIN Account a ON c.accountId = a.id
                 WHERE c.clientId = :clientId
@@ -37,17 +38,18 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
     List<CardResponseDto> findCardsWithBalanceByClientId(@Param("clientId") UUID clientId);
 
     @Query("""
-                SELECT 
-                    c.id as id, 
-                    c.clientId as clientId, 
-                    c.accountId as accountId, 
-                    c.createdDate as createdDate, 
-                    c.expireDate as expireDate, 
-                    c.name as name, 
-                    c.currency as currency, 
-                    c.status as status, 
-                    a.balance as balance,
-                    c.cardNumber as cardNumber 
+                SELECT new com.pers.dto.response.CardResponseDto(
+                    c.id,
+                    c.clientId,
+                    c.accountId,
+                    a.balance,
+                    c.createdDate,
+                    c.expireDate,
+                    c.name,
+                    c.currency,
+                    c.status,
+                    c.cardNumber
+                )
                 FROM Card c
                 JOIN Account a ON c.accountId = a.id
                 WHERE c.id = :id
@@ -55,42 +57,44 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
     Optional<CardResponseDto> findCardWithBalanceById(@Param("id") UUID id);
 
     @Query("""
-                SELECT 
-                    c.id as id, 
-                    c.clientId as clientId, 
-                    c.accountId as accountId, 
-                    c.createdDate as createdDate, 
-                    c.expireDate as expireDate, 
-                    c.name as name, 
-                    c.currency as currency, 
-                    c.status as status, 
-                    a.balance as balance,
-                    c.cardNumber as cardNumber 
+                SELECT new com.pers.dto.response.CardResponseDto(
+                    c.id,
+                    c.clientId,
+                    c.accountId,
+                    a.balance,
+                    c.createdDate,
+                    c.expireDate,
+                    c.name,
+                    c.currency,
+                    c.status,
+                    c.cardNumber
+                )
                 FROM Card c
                 JOIN Account a ON c.accountId = a.id
-                WHERE c.cardNumber = :id
+                WHERE c.cardNumber = :number
             """)
-    Optional<CardResponseDto> findByNumber(@Param("id")String id);
+    Optional<CardResponseDto> findByNumber(@Param("number") String number);
 
 //    List<Card> findByClientPhone(String phone); // todo
 
     @Query("""
-                SELECT 
-                    c.id as id, 
-                    c.cardNumber as cardNumber, 
-                    c.clientId as clientId, 
-                    c.accountId as accountId, 
-                    c.createdDate as createdDate, 
-                    c.expireDate as expireDate, 
-                    c.name as name, 
-                    c.currency as currency, 
-                    c.status as status, 
-                    a.balance as balance
+                SELECT new com.pers.dto.response.CardResponseDto(
+                    c.id,
+                    c.clientId,
+                    c.accountId,
+                    a.balance,
+                    c.createdDate,
+                    c.expireDate,
+                    c.name,
+                    c.currency,
+                    c.status,
+                    c.cardNumber
+                )
                 FROM Card c
                 JOIN Account a ON c.accountId = a.id
                 WHERE c.accountId = :accountId
             """)
-    List<CardResponseDto> findByAccountId(@Param("accountId")UUID accountId);
+    List<CardResponseDto> findByAccountId(@Param("accountId") UUID accountId);
 
     boolean existsByCardNumber(String cardNumber);
 }
