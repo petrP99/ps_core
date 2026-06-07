@@ -1,22 +1,21 @@
 package com.pers.mapper;
 
-import com.pers.dto.PaymentReadDto;
+import com.pers.dto.response.PaymentResponseDto;
 import com.pers.entity.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PaymentReadMapper implements Mapper<Payment, PaymentReadDto> {
+public class PaymentReadMapper {
 
-    @Override
-    public PaymentReadDto mapFrom(Payment object) {
-        return new PaymentReadDto(
+    public PaymentResponseDto toDto(Payment object) {
+        return new PaymentResponseDto(
                 object.getId(),
                 object.getShopName(),
                 object.getAmount(),
                 object.getClientId(),
-                object.getCardId(),
+                object.getCardNo(),
                 object.getTimeOfPay(),
                 object.getStatus()
         );

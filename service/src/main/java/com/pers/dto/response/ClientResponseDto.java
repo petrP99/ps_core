@@ -1,4 +1,4 @@
-package com.pers.dto;
+package com.pers.dto.response;
 
 import com.pers.enums.Role;
 import com.pers.enums.Status;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Value
-public class ClientReadDto {
+public class ClientResponseDto {
 
     UUID id;
     Role role;

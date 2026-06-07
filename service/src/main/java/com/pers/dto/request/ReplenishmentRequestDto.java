@@ -1,14 +1,15 @@
-package com.pers.dto;
+package com.pers.dto.request;
 
 import com.pers.validation.ReplenishmentInfo;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @ReplenishmentInfo
-public record ReplenishmentCreateDto(
+public record ReplenishmentRequestDto(
         @Positive
         BigDecimal amount,
-        Long cardId
+        String cardNo
 ) {
 }

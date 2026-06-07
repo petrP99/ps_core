@@ -2,7 +2,6 @@ package com.pers.entity;
 
 import com.pers.enums.Role;
 import com.pers.enums.Status;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

@@ -22,7 +22,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id", "shopName", "cardId"})
+@EqualsAndHashCode
 @ToString
 @Builder
 @Entity
@@ -32,20 +32,20 @@ public class Payment implements BaseEntity<Long> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String shopName;
-    
-    @Column(precision = 19, scale = 2, nullable = false)
-    private BigDecimal amount;
-
-    @Column(name = "pay_by_client_id")
+    @Column(name = "client_id")
     private UUID clientId;
 
-    @Column(name = "pay_by_card_no")
-    private Long cardId;
+    @Column(name = "card_no")
+    private String cardNo;
 
     private LocalDateTime timeOfPay;
+
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    private String recipient;
+
+    private String shopName;
 }

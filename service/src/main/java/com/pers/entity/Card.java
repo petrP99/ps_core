@@ -26,11 +26,14 @@ import java.util.UUID;
 @ToString
 @Builder
 @Entity
-public class Card implements BaseEntity<Long> {
+public class Card implements BaseEntity<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(name = "card_number", unique = true, length = 16)
+    private String cardNumber;
 
     @Column(name = "client_id")
     private UUID clientId;

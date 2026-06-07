@@ -1,12 +1,10 @@
 package com.pers.service;
 
 
-import com.pers.dto.CardUpdateBalanceDto;
-import com.pers.dto.PaymentCreateDto;
-import com.pers.dto.PaymentReadDto;
 import com.pers.dto.filter.PaymentFilterDto;
+import com.pers.dto.request.PaymentRequestDto;
+import com.pers.dto.response.PaymentResponseDto;
 import com.pers.enums.Status;
-import static com.pers.enums.Status.FAILED;
 import com.pers.mapper.PaymentCreateMapper;
 import com.pers.mapper.PaymentReadMapper;
 import com.pers.repository.AccountRepository;
@@ -22,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.pers.enums.Status.FAILED;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -36,9 +36,9 @@ public class PaymentService {
     private final AccountRepository accountRepository;
 
     @Transactional
-    public boolean checkAndCreatePayment(PaymentCreateDto payment) {
+    public boolean checkAndCreatePayment(PaymentRequestDto payment) {
         var clientReadDto = clientService.findById(payment.clientId()).orElseThrow();
-        var cardReadDto = cardService.findById(payment.cardId()).orElseThrow();
+        var cardReadDto = cardService.findByNumber(payment.cardNo()).orElseThrow();
         var amount = payment.amount();
 
         if (clientReadDto.getStatus() == Status.ACTIVE
@@ -46,29 +46,15 @@ public class PaymentService {
             && amount.compareTo(cardReadDto.balance()) <= 0) {
 
             create(payment);
-            var cardCreateDto = new CardUpdateBalanceDto(
-                    cardReadDto.id(),
-                    cardReadDto.clientId(),
-                    cardReadDto.accountId(),
-                    cardReadDto.balance().subtract(amount),
-                    cardReadDto.createdDate(),
-                    cardReadDto.expireDate(),
-                    cardReadDto.name(),
-                    cardReadDto.currency(),
-                    cardReadDto.status());
-
-            cardService.updateCardBalance(cardCreateDto);
 
             var newBalance = CheckOfOperationUtil.calculateClientBalance(cardRepository.findByClientId(payment.clientId()), accountRepository);
-            var clientUpdateBalanceDto = CheckOfOperationUtil.createClientUpdateBalanceDto(clientReadDto, newBalance);
 
-            clientService.updateBalance(clientUpdateBalanceDto);
         } else {
-            var paymentFail = new PaymentCreateDto(
+            var paymentFail = new PaymentRequestDto(
                     payment.shopName(),
                     payment.amount(),
                     payment.clientId(),
-                    payment.cardId(),
+                    payment.cardNo(),
                     payment.timeOfPay(),
                     FAILED);
             create(paymentFail);
@@ -78,11 +64,11 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentReadDto create(PaymentCreateDto paymentDto) {
+    public PaymentResponseDto create(PaymentRequestDto paymentDto) {
         return Optional.of(paymentDto)
-                .map(paymentCreateMapper::mapFrom)
+                .map(paymentCreateMapper::toEntity)
                 .map(paymentRepository::save)
-                .map(paymentReadMapper::mapFrom)
+                .map(paymentReadMapper::toDto)
                 .orElseThrow();
     }
 
@@ -97,19 +83,19 @@ public class PaymentService {
                 .orElse(false);
     }
 
-    public Page<PaymentReadDto> findAllByFilter(PaymentFilterDto filter, Pageable pageable) {
+    public Page<PaymentResponseDto> findAllByFilter(PaymentFilterDto filter, Pageable pageable) {
         return paymentRepository.findAllByFilter(filter, pageable)
-                .map(paymentReadMapper::mapFrom);
+                .map(paymentReadMapper::toDto);
     }
 
-    public Page<PaymentReadDto> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, UUID clientId) {
+    public Page<PaymentResponseDto> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, UUID clientId) {
         return paymentRepository.findAllByClientByFilter(filter, pageable, clientId)
-                .map(paymentReadMapper::mapFrom);
+                .map(paymentReadMapper::toDto);
     }
 
-    public Optional<PaymentReadDto> findById(Long id) {
+    public Optional<PaymentResponseDto> findById(Long id) {
         return paymentRepository.findById(id)
-                .map(paymentReadMapper::mapFrom);
+                .map(paymentReadMapper::toDto);
     }
 
 }

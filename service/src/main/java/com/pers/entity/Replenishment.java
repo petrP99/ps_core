@@ -23,7 +23,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id", "clientId", "cardNoTo"})
+@EqualsAndHashCode(of = {"id", "clientId", "cardNo"})
 @ToString
 @Builder
 @Entity
@@ -36,8 +36,8 @@ public class Replenishment implements BaseEntity<Long> {
     @Column(name = "client_id")
     private UUID clientId;
 
-    @Column(name = "card_no_to")
-    private Long cardNoTo;
+    @Column(name = "card_no")
+    private String cardNo;
 
     @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;

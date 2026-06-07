@@ -2,7 +2,7 @@ package com.pers.mapper;
 
 public interface Mapper<F, T> {
 
-    T mapFrom(F object);
+    T toEntity(F object);
 
     default T map(F fromObject, T toObject) {
         return toObject;

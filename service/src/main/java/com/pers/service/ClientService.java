@@ -1,15 +1,13 @@
 package com.pers.service;
 
-import com.pers.dto.AccountCreateDto;
-import com.pers.dto.ClientCreateDto;
-import com.pers.dto.ClientReadDto;
-import com.pers.dto.ClientUpdateBalanceDto;
+import com.pers.dto.request.AccountRequestDto;
+import com.pers.dto.response.ClientResponseDto;
+import com.pers.dto.request.ClientRequestDto;
 import com.pers.dto.filter.ClientFilterDto;
 import com.pers.entity.Client;
 import com.pers.enums.Currency;
 import com.pers.mapper.ClientCreateMapper;
 import com.pers.mapper.ClientReadMapper;
-import com.pers.mapper.ClientUpdateBalanceMapper;
 import com.pers.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,10 +31,9 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final ClientReadMapper clientReadMapper;
     private final ClientCreateMapper clientCreateMapper;
-    private final ClientUpdateBalanceMapper clientUpdateBalanceMapper;
     private final AccountService accountService;
 
-    public Page<ClientReadDto> findAll(ClientFilterDto filter, Pageable pageable) {
+    public Page<ClientResponseDto> findAll(ClientFilterDto filter, Pageable pageable) {
         return clientRepository.findAllByFilter(filter, pageable)
                 .map(client -> {
                     BigDecimal balance = accountService.getClientTotalBalance(client.getId());
@@ -48,7 +45,7 @@ public class ClientService {
         return clientRepository.findFirstAndLastNameByClientId(id);
     }
 
-    public Optional<ClientReadDto> findById(UUID id) {
+    public Optional<ClientResponseDto> findById(UUID id) {
         return clientRepository.findById(id)
                 .map(client -> {
                     BigDecimal balance = accountService.getClientTotalBalance(client.getId());
@@ -57,9 +54,9 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientReadDto create(ClientCreateDto clientDto) {
+    public ClientResponseDto create(ClientRequestDto clientDto) {
         return Optional.of(clientDto)
-                .map(clientCreateMapper::mapFrom)
+                .map(clientCreateMapper::toEntity)
                 .map(clientRepository::save)
                 .map(client -> {
                     BigDecimal balance = accountService.getClientTotalBalance(client.getId());
@@ -69,7 +66,7 @@ public class ClientService {
     }
 
     @Transactional
-    public Optional<ClientReadDto> update(UUID id, ClientCreateDto clientDto) {
+    public Optional<ClientResponseDto> update(UUID id, ClientRequestDto clientDto) {
         return clientRepository.findById(id)
                 .map(entity -> clientCreateMapper.map(clientDto, entity))
                 .map(clientRepository::saveAndFlush)
@@ -77,18 +74,6 @@ public class ClientService {
                     BigDecimal balance = accountService.getClientTotalBalance(client.getId());
                     return clientReadMapper.mapFrom(client, balance);
                 });
-    }
-
-    @Transactional
-    public ClientReadDto updateBalance(ClientUpdateBalanceDto clientDto) {
-        return Optional.of(clientDto)
-                .map(clientUpdateBalanceMapper::mapFrom)
-                .map(clientRepository::saveAndFlush)
-                .map(client -> {
-                    BigDecimal balance = accountService.getClientTotalBalance(client.getId());
-                    return clientReadMapper.mapFrom(client, balance);
-                })
-                .orElseThrow();
     }
 
     @Transactional
@@ -102,7 +87,7 @@ public class ClientService {
                 .orElse(false);
     }
 
-    public Optional<ClientReadDto> findByPhone(String phone) {
+    public Optional<ClientResponseDto> findByPhone(String phone) {
         return clientRepository.findByPhone(phone)
                 .map(client -> {
                     BigDecimal balance = accountService.getClientTotalBalance(client.getId());
@@ -112,8 +97,8 @@ public class ClientService {
 
     @Transactional
     public UUID getIdFromSuccessAuth(Map<String, Object> attributes) {
-        ClientCreateDto createDto = clientCreateMapper.mapToDto(attributes);
-        AccountCreateDto defaultAccount = new AccountCreateDto(Currency.RUB, ACCOUNT_NAME);
+        ClientRequestDto createDto = clientCreateMapper.mapToDto(attributes);
+        AccountRequestDto defaultAccount = new AccountRequestDto(Currency.RUB, ACCOUNT_NAME);
 
         return clientRepository.findByPhone(createDto.phone())
                 .map(Client::getId)

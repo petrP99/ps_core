@@ -1,4 +1,4 @@
-package com.pers.dto;
+package com.pers.dto.request;
 
 import com.pers.enums.Currency;
 import com.pers.enums.Status;
@@ -18,14 +18,14 @@ import java.util.UUID;
 @TransferInfo
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransferCreateDto {
+public class TransferRequestDto {
 
     @Positive
     private BigDecimal amount;
     private UUID fromClientId;
     private UUID toClientId;
-    private Long cardIdFrom;
-    private Long cardIdTo;
+    private String cardFrom;
+    private String cardTo;
     private LocalDateTime time;
     private String recipient;
     private String message;

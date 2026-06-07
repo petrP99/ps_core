@@ -1,6 +1,6 @@
 package com.pers.mapper;
 
-import com.pers.dto.AccountCreateDto;
+import com.pers.dto.request.AccountRequestDto;
 import com.pers.entity.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import static com.pers.util.constant.Constants.ACCOUNT_NAME;
 @RequiredArgsConstructor
 public class AccountCreateMapper {
 
-    public Account toEntity(AccountCreateDto dto, UUID clientId) {
+    public Account toEntity(AccountRequestDto dto, UUID clientId) {
         return Account.builder()
                 .balance(BigDecimal.ZERO)
                 .currency(dto.currency())

@@ -1,8 +1,8 @@
 package com.pers.http.rest;
 
-import com.pers.dto.CardReadDto;
-import com.pers.dto.ClientCreateDto;
-import com.pers.dto.ClientReadDto;
+import com.pers.dto.response.CardResponseDto;
+import com.pers.dto.response.ClientResponseDto;
+import com.pers.dto.request.ClientRequestDto;
 import com.pers.dto.filter.ClientFilterDto;
 import com.pers.dto.filter.PageResponse;
 import com.pers.http.config.CurrentClientId;
@@ -41,14 +41,14 @@ public class ClientRestController {
     private final CardService cardService;
 
     @PutMapping("/update")
-    public ResponseEntity<ClientReadDto> update(@CurrentClientId UUID clientId, @RequestBody @Validated ClientCreateDto client) {
+    public ResponseEntity<ClientResponseDto> update(@CurrentClientId UUID clientId, @RequestBody @Validated ClientRequestDto client) {
         return clientService.update(clientId, client)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<ClientReadDto> findById(@CurrentClientId UUID clientId) {
+    public ResponseEntity<ClientResponseDto> findById(@CurrentClientId UUID clientId) {
         log.warn("Получен ответ по данным профиля clientId={}", clientId);
         return clientService.findById(clientId)
                 .map(ResponseEntity::ok)
@@ -59,8 +59,8 @@ public class ClientRestController {
     @GetMapping("/myBalance")
     public ResponseEntity<BigDecimal> getActiveCardsWithBalance(@CurrentClientId UUID clientId) {
         log.warn("Получен баланс профиля clientId={}", clientId);
-        BigDecimal balance = cardService.findActiveCardsAndPositiveBalanceByClientId(clientId).stream()
-                .map(CardReadDto::balance)
+        BigDecimal balance = cardService.findByClientId(clientId).stream()
+                .map(CardResponseDto::balance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return ResponseEntity.ok(balance);
     }
@@ -71,7 +71,7 @@ public class ClientRestController {
 
     @PutMapping("/{id}/admin")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public ResponseEntity<ClientReadDto> updateByAdmin(@PathVariable("id") UUID id, @RequestBody @Validated ClientCreateDto client) {
+    public ResponseEntity<ClientResponseDto> updateByAdmin(@PathVariable("id") UUID id, @RequestBody @Validated ClientRequestDto client) {
         return clientService.update(id, client)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
@@ -88,8 +88,8 @@ public class ClientRestController {
 
     @GetMapping("/findAll")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public PageResponse<ClientReadDto> findAll(ClientFilterDto filter, Pageable pageable) {
-        Page<ClientReadDto> page = clientService.findAll(filter, pageable);
+    public PageResponse<ClientResponseDto> findAll(ClientFilterDto filter, Pageable pageable) {
+        Page<ClientResponseDto> page = clientService.findAll(filter, pageable);
         return PageResponse.of(page);
     }
 

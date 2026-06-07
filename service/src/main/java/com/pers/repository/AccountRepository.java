@@ -15,4 +15,5 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     BigDecimal getTotalBalanceByClientId(@Param("clientId") UUID clientId);
 
     List<Account> findAllByClientId(UUID clientId);
+
 }

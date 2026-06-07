@@ -23,7 +23,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id", "cardIdFrom", "cardIdTo"})
+@EqualsAndHashCode(of = {"id", "cardFrom", "cardTo"})
 @ToString
 @Builder
 @Entity
@@ -39,11 +39,11 @@ public class Transfer implements BaseEntity<Long> {
     @Column(name = "to_client_id")
     private UUID toClientId;
 
-    @Column(name = "card_no_from")
-    private Long cardIdFrom;
+    @Column(name = "card_from")
+    private String cardFrom;
 
-    @Column(name = "card_no_to")
-    private Long cardIdTo;
+    @Column(name = "card_to")
+    private String cardTo;
 
     @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;

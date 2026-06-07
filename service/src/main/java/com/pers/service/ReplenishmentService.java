@@ -1,9 +1,8 @@
 package com.pers.service;
 
-import com.pers.dto.ReplenishmentCreateDto;
-import com.pers.dto.ReplenishmentReadDto;
 import com.pers.dto.filter.ReplenishmentFilterDto;
-import com.pers.enums.Operation;
+import com.pers.dto.request.ReplenishmentRequestDto;
+import com.pers.dto.response.ReplenishmentResponseDto;
 import com.pers.enums.Status;
 import com.pers.mapper.ReplenishmentCreateMapper;
 import com.pers.mapper.ReplenishmentReadMapper;
@@ -22,7 +21,6 @@ import java.util.UUID;
 import static com.pers.enums.Status.ACTIVE;
 import static com.pers.enums.Status.FAILED;
 import static com.pers.enums.Status.SUCCESS;
-import static com.pers.util.CheckOfOperationUtil.getCardUpdateBalanceDto;
 
 
 @Service
@@ -38,15 +36,13 @@ public class ReplenishmentService {
     private final CardRepository cardRepository;
 
     @Transactional
-    public boolean checkAndCreateReplenishment(ReplenishmentCreateDto replenishment) {
-        var cardReadDto = cardService.findById(replenishment.cardId()).orElseThrow();
+    public boolean checkAndCreateReplenishment(ReplenishmentRequestDto replenishment) {
+        var cardReadDto = cardService.findByNumber(replenishment.cardNo()).orElseThrow();
         UUID clientId = cardReadDto.clientId();
         Status clientStatus = clientService.findById(clientId).orElseThrow().getStatus();
 
         if (clientStatus == ACTIVE && cardReadDto.status() == ACTIVE) {
             create(replenishment, SUCCESS, clientId);
-            var cardCreateDto = getCardUpdateBalanceDto(cardReadDto, replenishment.amount(), Operation.ADD);
-            cardService.updateCardBalance(cardCreateDto);
         } else {
             create(replenishment, FAILED, clientId);
             return false;
@@ -54,11 +50,11 @@ public class ReplenishmentService {
         return true;
     }
 
-    public ReplenishmentReadDto create(ReplenishmentCreateDto replenishmentDto, Status status, UUID clientId) {
+    public ReplenishmentResponseDto create(ReplenishmentRequestDto replenishmentDto, Status status, UUID clientId) {
         return Optional.of(replenishmentDto)
                 .map(dto -> replenishmentCreateMapper.mapFrom(dto, status, clientId))
                 .map(replenishmentRepository::save)
-                .map(replenishmentReadMapper::mapFrom)
+                .map(replenishmentReadMapper::toEntity)
                 .orElseThrow();
     }
 
@@ -73,25 +69,25 @@ public class ReplenishmentService {
                 .orElse(false);
     }
 
-    public Page<ReplenishmentReadDto> findAllByFilter(ReplenishmentFilterDto filter, Pageable pageable) {
+    public Page<ReplenishmentResponseDto> findAllByFilter(ReplenishmentFilterDto filter, Pageable pageable) {
         return replenishmentRepository.findAllByFilter(filter, pageable)
-                .map(replenishmentReadMapper::mapFrom);
+                .map(replenishmentReadMapper::toEntity);
     }
 
-    public Page<ReplenishmentReadDto> findByClientByFilter(ReplenishmentFilterDto filter, Pageable pageable, UUID clientId) {
+    public Page<ReplenishmentResponseDto> findByClientByFilter(ReplenishmentFilterDto filter, Pageable pageable, UUID clientId) {
         return replenishmentRepository.findAllByClientByFilter(filter, pageable, clientId)
-                .map(replenishmentReadMapper::mapFrom);
+                .map(replenishmentReadMapper::toEntity);
     }
 
 
-    public Optional<ReplenishmentReadDto> findById(Long id) {
+    public Optional<ReplenishmentResponseDto> findById(Long id) {
         return replenishmentRepository.findById(id)
-                .map(replenishmentReadMapper::mapFrom);
+                .map(replenishmentReadMapper::toEntity);
     }
 
-    public List<ReplenishmentReadDto> findByClientId(UUID id) {
+    public List<ReplenishmentResponseDto> findByClientId(UUID id) {
         return replenishmentRepository.findAllByClientId(id).stream()
-                .map(replenishmentReadMapper::mapFrom)
+                .map(replenishmentReadMapper::toEntity)
                 .toList();
 
     }

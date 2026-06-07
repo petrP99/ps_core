@@ -1,7 +1,6 @@
 package com.pers.service;
 
-import com.pers.dto.ClientCreateDto;
-import com.pers.enums.Role;
+import com.pers.dto.request.ClientRequestDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -79,7 +78,7 @@ public class KeycloakService {
         return (String) response.getBody().get("access_token");
     }
 
-    public boolean registerInKeycloak(ClientCreateDto dto, String rawPassword) {
+    public boolean registerInKeycloak(ClientRequestDto dto, String rawPassword) {
         try {
             String adminToken = getAdminToken();
             String createUserUrl = keycloakBaseUrl + "/admin/realms/" + keycloakRealm + "/users";

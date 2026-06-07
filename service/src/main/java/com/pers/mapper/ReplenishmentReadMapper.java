@@ -1,20 +1,20 @@
 package com.pers.mapper;
 
-import com.pers.dto.ReplenishmentReadDto;
+import com.pers.dto.response.ReplenishmentResponseDto;
 import com.pers.entity.Replenishment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ReplenishmentReadMapper implements Mapper<Replenishment, ReplenishmentReadDto> {
+public class ReplenishmentReadMapper implements Mapper<Replenishment, ReplenishmentResponseDto> {
 
     @Override
-    public ReplenishmentReadDto mapFrom(Replenishment object) {
-        return new ReplenishmentReadDto(
+    public ReplenishmentResponseDto toEntity(Replenishment object) {
+        return new ReplenishmentResponseDto(
                 object.getId(),
                 object.getClientId(),
-                object.getCardNoTo(),
+                object.getCardNo(),
                 object.getAmount(),
                 object.getTimeOfReplenishment(),
                 object.getStatus()

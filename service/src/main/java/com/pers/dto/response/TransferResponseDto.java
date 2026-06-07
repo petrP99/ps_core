@@ -1,4 +1,4 @@
-package com.pers.dto;
+package com.pers.dto.response;
 
 import com.pers.enums.Currency;
 import com.pers.enums.Status;
@@ -7,12 +7,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record TransferReadDto(
+public record TransferResponseDto(
         Long id,
         UUID fromClientId,
         UUID toClientId,
-        Long cardIdFrom,
-        Long cardIdTo,
+        String cardFrom,
+        String cardTo,
         BigDecimal amount,
         LocalDateTime timeOfTransfer,
         String recipient,

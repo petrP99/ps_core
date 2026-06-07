@@ -1,6 +1,6 @@
 package com.pers.kafka;
 
-import com.pers.dto.TransferCreateDto;
+import com.pers.dto.request.TransferRequestDto;
 import com.pers.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ public class KafkaListenerService {
     private final TransferService transferService;
 
     @KafkaListener(topics = "ps-transfer-create", groupId = "ps-group")
-    public void listenTransferStatus(TransferCreateDto transfer) throws InterruptedException {
+    public void listenTransferStatus(TransferRequestDto transfer) throws InterruptedException {
         log.info("Received transfer status event: {}", transfer);
         Thread.sleep(5000);
         transferService.completeTransfer(transfer);

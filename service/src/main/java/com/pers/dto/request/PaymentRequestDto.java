@@ -1,4 +1,4 @@
-package com.pers.dto;
+package com.pers.dto.request;
 
 import com.pers.enums.Status;
 import com.pers.validation.PaymentInfo;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @PaymentInfo
-public record PaymentCreateDto(
+public record PaymentRequestDto(
         @NotBlank
         String shopName,
 
@@ -22,7 +22,7 @@ public record PaymentCreateDto(
 
         UUID clientId,
 
-        Long cardId,
+        String cardNo,
 
         @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
         LocalDateTime timeOfPay,

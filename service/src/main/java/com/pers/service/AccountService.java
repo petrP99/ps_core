@@ -1,7 +1,7 @@
 package com.pers.service;
 
-import com.pers.dto.AccountCreateDto;
-import com.pers.dto.AccountReadDto;
+import com.pers.dto.request.AccountRequestDto;
+import com.pers.dto.response.AccountResponseDto;
 import com.pers.entity.Account;
 import com.pers.mapper.AccountCreateMapper;
 import com.pers.repository.AccountRepository;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,16 +26,31 @@ public class AccountService {
     private final CurrencyService currencyService;
 
     @Transactional
-    public AccountReadDto create(AccountCreateDto dto, UUID clientId) {
+    public AccountResponseDto create(AccountRequestDto dto, UUID clientId) {
         var account = accountCreateMapper.toEntity(dto, clientId);
         var savedAccount = accountRepository.save(account);
         return toDto(savedAccount);
     }
 
-    public Optional<AccountReadDto> findById(UUID id) {
+    public Optional<AccountResponseDto> findById(UUID id) {
         return accountRepository.findById(id)
                 .map(this::toDto);
     }
+
+    public List<AccountResponseDto> findAll(UUID clientId) {
+        return accountRepository.findAllByClientId(clientId).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+
+    public BigDecimal getBalanceById(UUID id) {
+        return accountRepository.findById(id)
+                .map(this::toDto)
+                .map(AccountResponseDto::balance)
+                .orElse(BigDecimal.ZERO);
+    }
+
 
     public BigDecimal getClientTotalBalance(UUID clientId) {
         return accountRepository.findAllByClientId(clientId).stream()
@@ -51,9 +67,9 @@ public class AccountService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private AccountReadDto toDto(Account account) {
+    private AccountResponseDto toDto(Account account) {
         var cards = cardService.findByAccountId(account.getId());
-        return new AccountReadDto(
+        return new AccountResponseDto(
                 account.getId(),
                 account.getBalance(),
                 account.getCurrency(),

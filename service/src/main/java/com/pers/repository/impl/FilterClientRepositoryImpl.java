@@ -2,7 +2,6 @@ package com.pers.repository.impl;
 
 import com.pers.dto.filter.ClientFilterDto;
 import com.pers.entity.Client;
-import static com.pers.entity.QClient.client;
 import com.pers.repository.FilterClientRepository;
 import com.pers.repository.predicate.QPredicate;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -13,6 +12,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+
+import static com.pers.entity.QClient.client;
 
 
 @RequiredArgsConstructor

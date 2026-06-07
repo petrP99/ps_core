@@ -1,8 +1,8 @@
 package com.pers.http.rest;
 
-import com.pers.dto.CardReadDto;
-import com.pers.dto.PaymentCreateDto;
-import com.pers.dto.PaymentReadDto;
+import com.pers.dto.response.CardResponseDto;
+import com.pers.dto.response.PaymentResponseDto;
+import com.pers.dto.request.PaymentRequestDto;
 import com.pers.dto.filter.PageResponse;
 import com.pers.dto.filter.PaymentFilterDto;
 import com.pers.http.config.CurrentClientId;
@@ -34,19 +34,19 @@ public class PaymentRestController {
     private final CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<Boolean> create(@Validated @RequestBody PaymentCreateDto payment) {
+    public ResponseEntity<Boolean> create(@Validated @RequestBody PaymentRequestDto payment) {
         boolean result = paymentService.checkAndCreatePayment(payment);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/my")
-    public PageResponse<PaymentReadDto> clientPayments(PaymentFilterDto filter, Pageable pageable, @CurrentClientId UUID clientId) {
+    public PageResponse<PaymentResponseDto> clientPayments(PaymentFilterDto filter, Pageable pageable, @CurrentClientId UUID clientId) {
         return PageResponse.of(paymentService.findAllByClientByFilter(filter, pageable, clientId));
     }
 
     @GetMapping("/getCards")
-    public ResponseEntity<List<CardReadDto>> getCardsForPayment(@CurrentClientId UUID clientId) {
-        var cards = cardService.findActiveCardsAndPositiveBalanceByClientId(clientId);
+    public ResponseEntity<List<CardResponseDto>> getCardsForPayment(@CurrentClientId UUID clientId) {
+        var cards = cardService.findByClientId(clientId);
         return ResponseEntity.ok(cards);
     }
 
@@ -56,7 +56,7 @@ public class PaymentRestController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public PageResponse<PaymentReadDto> allPayments(PaymentFilterDto filter, Pageable pageable) {
+    public PageResponse<PaymentResponseDto> allPayments(PaymentFilterDto filter, Pageable pageable) {
         return PageResponse.of(paymentService.findAllByFilter(filter, pageable));
     }
 

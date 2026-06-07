@@ -1,6 +1,6 @@
 package com.pers.mapper;
 
-import com.pers.dto.ReplenishmentCreateDto;
+import com.pers.dto.request.ReplenishmentRequestDto;
 import com.pers.entity.Replenishment;
 import com.pers.enums.Status;
 import lombok.RequiredArgsConstructor;
@@ -13,19 +13,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReplenishmentCreateMapper {
 
-    public Replenishment mapFrom(ReplenishmentCreateDto object, Status status) {
+    public Replenishment mapFrom(ReplenishmentRequestDto object, Status status) {
         return Replenishment.builder()
-                .cardNoTo(object.cardId())
+                .cardNo(object.cardNo())
                 .amount(object.amount())
                 .timeOfReplenishment(LocalDateTime.now())
                 .status(status)
                 .build();
     }
 
-    public Replenishment mapFrom(ReplenishmentCreateDto object, Status status, UUID clientId) {
+    public Replenishment mapFrom(ReplenishmentRequestDto object, Status status, UUID clientId) {
         return Replenishment.builder()
                 .clientId(clientId)
-                .cardNoTo(object.cardId())
+                .cardNo(object.cardNo())
                 .amount(object.amount())
                 .timeOfReplenishment(LocalDateTime.now())
                 .status(status)

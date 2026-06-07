@@ -1,19 +1,19 @@
 package com.pers.mapper;
 
-import com.pers.dto.TransferReadDto;
+import com.pers.dto.response.TransferResponseDto;
 import com.pers.entity.Transfer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TransferReadMapper implements Mapper<Transfer, TransferReadDto> {
+public class TransferReadMapper implements Mapper<Transfer, TransferResponseDto> {
     @Override
-    public TransferReadDto mapFrom(Transfer object) {
-        return new TransferReadDto(
+    public TransferResponseDto toEntity(Transfer object) {
+        return new TransferResponseDto(
                 object.getId(),
                 object.getFromClientId(),
                 object.getToClientId(),
-                object.getCardIdFrom(),
-                object.getCardIdTo(),
+                object.getCardFrom(),
+                object.getCardTo(),
                 object.getAmount(),
                 object.getTimeOfTransfer(),
                 object.getRecipient(),

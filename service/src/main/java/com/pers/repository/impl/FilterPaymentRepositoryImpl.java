@@ -28,7 +28,7 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
                 .add(filter.clientId(), payment.clientId::eq)
                 .add(filter.shopName(), payment.shopName::containsIgnoreCase)
                 .add(filter.amount(), payment.amount::eq)
-//                .add(filter.cardId(), payment.card::) // todo
+//                .add(filter.cardNo(), payment.card::) // todo
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 
@@ -53,7 +53,7 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
                 .add(clientId, payment.clientId::eq)
                 .add(filter.shopName(), payment.shopName::containsIgnoreCase)
                 .add(filter.amount(), payment.amount::eq)
-//                .add(filter.cardId(), payment.cardId::eq) // todo
+//                .add(filter.cardNo(), payment.cardNo::eq) // todo
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 
