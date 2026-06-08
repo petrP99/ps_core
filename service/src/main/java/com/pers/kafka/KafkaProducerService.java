@@ -15,10 +15,10 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${app.kafka.topics.transfer-create}")
+    @Value("${spring.kafka.topics.transfer-create}")
     private String transferCreateTopic;
 
-    @Value("${app.kafka.topics.account-close}")
+    @Value("${spring.kafka.topics.account-close}")
     private String accountCloseTopic;
 
     public void sendTransferCreateEvent(TransferRequestDto dto) {
