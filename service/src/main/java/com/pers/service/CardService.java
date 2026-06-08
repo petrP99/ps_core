@@ -5,11 +5,13 @@ import com.pers.dto.response.CardResponseDto;
 import com.pers.entity.Card;
 import com.pers.enums.Status;
 import com.pers.mapper.CardCreateMapper;
+import com.pers.repository.AccountRepository;
 import com.pers.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.pers.util.constant.Constants.CARD_NUMBER_LENGTH;
 import static com.pers.util.constant.Constants.CURRENCY_PREFIXES;
 import static com.pers.util.constant.Constants.DEFAULT_CARD_NUMBER_PREFIX;
+import static com.pers.enums.AccountStatus.ACTIVE;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Slf4j
 @Service
@@ -27,6 +33,7 @@ import static com.pers.util.constant.Constants.DEFAULT_CARD_NUMBER_PREFIX;
 public class CardService {
 
     private final CardRepository cardRepository;
+    private final AccountRepository accountRepository;
     private final CardCreateMapper cardCreateMapper;
 
     public Optional<CardResponseDto> findByNumber(String number) {
@@ -119,7 +126,16 @@ public class CardService {
         log.info("Создание новой карты c именем {} для клиента {}. Валюта: {}, Премиум: {}",
                 dto.name(), clientId, dto.currency(), dto.isPremium());
 
-        String prefix = CURRENCY_PREFIXES.getOrDefault(dto.currency(), DEFAULT_CARD_NUMBER_PREFIX);
+        var account = accountRepository.findByIdAndClientId(dto.accountId(), clientId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Счет не найден"));
+        if (account.getStatus() != ACTIVE) {
+            throw new ResponseStatusException(CONFLICT, "Нельзя создать карту для закрытого счета");
+        }
+        if (account.getCurrency() != dto.currency()) {
+            throw new ResponseStatusException(BAD_REQUEST, "Валюта карты должна совпадать с валютой счета");
+        }
+
+        String prefix = CURRENCY_PREFIXES.getOrDefault(account.getCurrency(), DEFAULT_CARD_NUMBER_PREFIX);
         String cardNumber = generateUniqueCardNumber(prefix, Boolean.TRUE.equals(dto.isPremium()));
         Card card = cardCreateMapper.toEntity(dto, clientId, cardNumber);
         Card savedCard = cardRepository.save(card);

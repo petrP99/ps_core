@@ -18,6 +18,8 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
 
     List<Card> findByClientId(UUID clientId);
 
+    List<Card> findAllByAccountId(UUID accountId);
+
     @Query("""
                 SELECT new com.pers.dto.response.CardResponseDto(
                     c.id,

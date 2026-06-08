@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
@@ -16,4 +17,5 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     List<Account> findAllByClientId(UUID clientId);
 
+    Optional<Account> findByIdAndClientId(UUID id, UUID clientId);
 }

@@ -1,6 +1,7 @@
 package com.pers.entity;
 
 import com.pers.enums.Currency;
+import com.pers.enums.AccountStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,4 +47,8 @@ public class Account implements BaseEntity<UUID> {
 
     @Column(nullable = true)
     private Integer cashback;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountStatus status;
 }

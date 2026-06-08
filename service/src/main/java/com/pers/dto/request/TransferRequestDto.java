@@ -22,19 +22,18 @@ public class TransferRequestDto {
 
     @Positive
     private BigDecimal amount;
+
     private UUID fromClientId;
     private UUID toClientId;
+
     private String cardFrom;
     private String cardTo;
+
     private LocalDateTime time;
     private String recipient;
     private String message;
     private Status status;
-    private Long id;
-
-    // Сумма, которую МЫ ДОБАВИЛИ на счет получателя
     private BigDecimal amountTo;
-
     private Currency currency;
     private Currency targetCurrency;
 }

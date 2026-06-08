@@ -93,3 +93,8 @@ CREATE TABLE IF NOT EXISTS exchange_rate
     updated_at    DATE           NOT NULL DEFAULT CURRENT_DATE
 );
 --rollback DROP TABLE exchange_rate;
+
+--changeset pers:9
+ALTER TABLE account
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE';
+--rollback ALTER TABLE account DROP COLUMN status;

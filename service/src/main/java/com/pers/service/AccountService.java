@@ -75,6 +75,7 @@ public class AccountService {
                 account.getCurrency(),
                 account.getName(),
                 account.getCashback(),
+                account.getStatus(),
                 cards
         );
     }

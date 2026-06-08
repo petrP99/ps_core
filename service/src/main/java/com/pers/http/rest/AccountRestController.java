@@ -4,6 +4,7 @@ import com.pers.dto.request.AccountRequestDto;
 import com.pers.dto.response.AccountResponseDto;
 import com.pers.http.config.CurrentClientId;
 import com.pers.service.AccountService;
+import com.pers.service.AccountClosureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.ACCEPTED;
 
 @Slf4j
 @RestController
@@ -28,6 +30,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class AccountRestController {
 
     private final AccountService accountService;
+    private final AccountClosureService accountClosureService;
 
     @PostMapping("/create")
     public ResponseEntity<AccountResponseDto> create(@Validated @RequestBody AccountRequestDto dto,
@@ -50,4 +53,9 @@ public class AccountRestController {
         return ResponseEntity.ok(all);
     }
 
+    @PostMapping("/{id}/close")
+    public ResponseEntity<Void> close(@PathVariable UUID id, @CurrentClientId UUID clientId) {
+        accountClosureService.requestClosure(id, clientId);
+        return ResponseEntity.status(ACCEPTED).build();
+    }
 }

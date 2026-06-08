@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static com.pers.util.constant.Constants.ACCOUNT_NAME;
+import static com.pers.enums.AccountStatus.ACTIVE;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class AccountCreateMapper {
                 .clientId(clientId)
                 .name(dto.name() != null && !dto.name().isBlank() ? dto.name() : ACCOUNT_NAME)
                 .cashback(0)
+                .status(ACTIVE)
                 .build();
     }
 }
