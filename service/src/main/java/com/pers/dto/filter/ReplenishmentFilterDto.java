@@ -9,9 +9,9 @@ import java.util.UUID;
 
 @Builder
 public record ReplenishmentFilterDto(
-        Long id,
+        UUID id,
         UUID clientId,
-        Long cardNo,
+        UUID accountId,
         BigDecimal amount,
         LocalDateTime timeOfReplenishment,
         Status status

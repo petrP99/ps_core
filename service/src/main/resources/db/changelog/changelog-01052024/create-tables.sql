@@ -43,21 +43,21 @@ CREATE TABLE IF NOT EXISTS card
 --changeset pers:5
 CREATE TABLE IF NOT EXISTS payment
 (
-    id          BIGSERIAL PRIMARY KEY,
-    client_id   UUID           NOT NULL REFERENCES client (id),
-    card_no     VARCHAR(16)    NOT NULL REFERENCES card (card_number),
-    time_of_pay TIMESTAMP      NOT NULL,
-    amount      NUMERIC(19, 2) NOT NULL,
-    status      VARCHAR(20)    NOT NULL,
-    recipient   VARCHAR(255),
-    shop_name   VARCHAR(255)   NOT NULL
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id           UUID           NOT NULL REFERENCES client (id),
+    account_id          UUID           NOT NULL REFERENCES account (id),
+    time_of_pay         TIMESTAMP      NOT NULL,
+    amount              NUMERIC(19, 2) NOT NULL,
+    status              VARCHAR(20)    NOT NULL,
+    recipient           VARCHAR(30)    NOT NULL,
+    payment_destination VARCHAR(255)   NOT NULL
 );
 --rollback DROP TABLE payment;
 
 --changeset pers:6
 CREATE TABLE IF NOT EXISTS transfer
 (
-    id               BIGSERIAL PRIMARY KEY,
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     from_client_id   UUID           NOT NULL REFERENCES client (id),
     to_client_id     UUID           NOT NULL REFERENCES client (id),
     card_from        VARCHAR(16)    NOT NULL REFERENCES card (card_number),
@@ -76,9 +76,9 @@ CREATE TABLE IF NOT EXISTS transfer
 --changeset pers:7
 CREATE TABLE IF NOT EXISTS replenishment
 (
-    id                    BIGSERIAL PRIMARY KEY,
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id             UUID           NOT NULL REFERENCES client (id),
-    card_no               VARCHAR(16)    NOT NULL REFERENCES card (card_number),
+    account_id            UUID           NOT NULL REFERENCES account (id),
     amount                NUMERIC(19, 2) NOT NULL,
     time_of_replenishment TIMESTAMP      NOT NULL,
     status                VARCHAR(20)    NOT NULL

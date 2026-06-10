@@ -27,11 +27,11 @@ import java.util.UUID;
 @ToString
 @Builder
 @Entity
-public class Transfer implements BaseEntity<Long> {
+public class Transfer implements BaseEntity<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "from_client_id")
     private UUID fromClientId;
@@ -51,6 +51,15 @@ public class Transfer implements BaseEntity<Long> {
     @Column(precision = 19, scale = 2)
     private BigDecimal amountTo;
 
+    @Column(name = "exchange_rate", precision = 19, scale = 6)
+    private BigDecimal exchangeRate;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal commission;
+
+    @Column(name = "debit_amount", precision = 19, scale = 2)
+    private BigDecimal debitAmount;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "currency")
     private Currency currency;
@@ -63,5 +72,6 @@ public class Transfer implements BaseEntity<Long> {
     private Status status;
     private LocalDateTime timeOfTransfer;
     private String recipient;
+    private String recipientPhone;
     private String message;
 }

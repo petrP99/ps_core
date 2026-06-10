@@ -26,9 +26,10 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
         var predicate = QPredicate.builder()
                 .add(filter.id(), payment.id::eq)
                 .add(filter.clientId(), payment.clientId::eq)
-                .add(filter.shopName(), payment.shopName::containsIgnoreCase)
+                .add(filter.paymentDestination(), payment.paymentDestination::containsIgnoreCase)
                 .add(filter.amount(), payment.amount::eq)
-//                .add(filter.cardNo(), payment.card::) // todo
+                .add(filter.accountId(), payment.accountId::eq)
+                .add(filter.recipient(), payment.recipient::eq)
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 
@@ -51,9 +52,10 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
         var predicate = QPredicate.builder()
                 .add(filter.id(), payment.id::eq)
                 .add(clientId, payment.clientId::eq)
-                .add(filter.shopName(), payment.shopName::containsIgnoreCase)
+                .add(filter.paymentDestination(), payment.paymentDestination::containsIgnoreCase)
                 .add(filter.amount(), payment.amount::eq)
-//                .add(filter.cardNo(), payment.cardNo::eq) // todo
+                .add(filter.accountId(), payment.accountId::eq)
+                .add(filter.recipient(), payment.recipient::eq)
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 

@@ -1,15 +1,18 @@
 package com.pers.dto.response;
 
 import com.pers.enums.Status;
+import com.pers.enums.Currency;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ReplenishmentResponseDto(
-        Long id,
+        UUID id,
         UUID clientId,
-        String cardNo,
+        UUID accountId,
+        String accountName,
+        Currency currency,
         BigDecimal amount,
         LocalDateTime timeOfReplenishment,
         Status status

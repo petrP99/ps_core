@@ -1,6 +1,8 @@
 package com.pers.service;
 
 import com.pers.dto.response.CbrResponseDto;
+import com.pers.dto.response.CurrencyRateResponseDto;
+import com.pers.dto.response.CurrencyRatesResponseDto;
 import com.pers.entity.ExchangeRate;
 import com.pers.enums.Currency;
 import com.pers.repository.ExchangeRateRepository;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.pers.enums.Currency.CNY;
+import static com.pers.enums.Currency.RUB;
 import static com.pers.enums.Currency.USD;
 
 @Service
@@ -79,7 +82,39 @@ public class CurrencyService {
 
     // Метод для получения курса другими сервисами (всегда из Redis)
     public BigDecimal getRateFromCache(Currency code) {
+        if (code == RUB) {
+            return BigDecimal.ONE;
+        }
         String val = redisTemplate.opsForValue().get(REDIS_PREFIX + code);
-        return val != null ? new BigDecimal(val) : BigDecimal.ONE;
+        if (val != null) {
+            return new BigDecimal(val);
+        }
+        return repository.findById(code)
+                .map(ExchangeRate::getRate)
+                .orElseThrow(() -> new IllegalStateException("Курс валюты " + code + " не найден"));
+    }
+
+    public CurrencyRatesResponseDto getRates() {
+        return new CurrencyRatesResponseDto(
+                List.of(
+                        new CurrencyRateResponseDto(RUB, getRateFromCache(RUB)),
+                        new CurrencyRateResponseDto(USD, getRateFromCache(USD)),
+                        new CurrencyRateResponseDto(CNY, getRateFromCache(CNY))
+                )
+        );
+    }
+
+    public ConversionResult convert(BigDecimal amount, Currency source, Currency target) {
+        BigDecimal sourceRate = getRateFromCache(source);
+        BigDecimal targetRate = getRateFromCache(target);
+        BigDecimal exchangeRate = sourceRate.divide(targetRate, 6, RoundingMode.HALF_UP);
+        BigDecimal convertedAmount = amount.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+        return new ConversionResult(exchangeRate, convertedAmount);
+    }
+
+    public record ConversionResult(
+            BigDecimal exchangeRate,
+            BigDecimal convertedAmount
+    ) {
     }
 }

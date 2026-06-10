@@ -27,7 +27,7 @@ public class FilterReplenishmentRepositoryImpl implements FilterReplenishmentRep
         var predicate = QPredicate.builder()
                 .add(filter.id(), replenishment.id::eq)
                 .add(filter.clientId(), replenishment.clientId::eq)
-//                .add(filter.cardNo(), replenishment.cardNoTo::eq)
+                .add(filter.accountId(), replenishment.accountId::eq)
                 .add(filter.amount(), replenishment.amount::eq)
                 .add(filter.status(), replenishment.status::eq)
                 .buildAnd();
@@ -51,7 +51,7 @@ public class FilterReplenishmentRepositoryImpl implements FilterReplenishmentRep
         var predicate = QPredicate.builder()
                 .add(filter.id(), replenishment.id::eq)
                 .add(clientId, replenishment.clientId::eq)
-//                .add(filter.cardNo(), replenishment.cardNoTo::eq)
+                .add(filter.accountId(), replenishment.accountId::eq)
                 .add(filter.amount(), replenishment.amount::eq)
                 .add(filter.status(), replenishment.status::eq)
                 .buildAnd();
@@ -59,7 +59,8 @@ public class FilterReplenishmentRepositoryImpl implements FilterReplenishmentRep
         var query = new JPAQuery<Replenishment>(entityManager)
                 .select(replenishment)
                 .from(replenishment)
-                .where(predicate);
+                .where(predicate)
+                .orderBy(replenishment.timeOfReplenishment.desc());
 
         List<Replenishment> content = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

@@ -1,6 +1,6 @@
 package com.pers.kafka;
 
-import com.pers.dto.request.TransferRequestDto;
+import com.pers.dto.request.TransferEventDto;
 import com.pers.dto.event.AccountCloseEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +21,8 @@ public class KafkaProducerService {
     @Value("${spring.kafka.topics.account-close}")
     private String accountCloseTopic;
 
-    public void sendTransferCreateEvent(TransferRequestDto dto) {
-        kafkaTemplate.send(transferCreateTopic, dto.getFromClientId().toString(), dto);
+    public void sendTransferCreateEvent(String eventKey, TransferEventDto dto) {
+        kafkaTemplate.send(transferCreateTopic, eventKey, dto).join();
         log.info("Sent transfer create event: {}", dto);
     }
 

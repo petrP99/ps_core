@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Builder
 public record TransferFilterDto(
-        Long id,
+        UUID id,
         UUID fromClientId,
         UUID toClientId,
         Long cardNoFrom,

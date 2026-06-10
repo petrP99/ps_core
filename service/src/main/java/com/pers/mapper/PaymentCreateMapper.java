@@ -2,27 +2,24 @@ package com.pers.mapper;
 
 import com.pers.dto.request.PaymentRequestDto;
 import com.pers.entity.Payment;
-import lombok.RequiredArgsConstructor;
+import com.pers.enums.Status;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-
-import static com.pers.enums.Status.FAILED;
-import static com.pers.enums.Status.SUCCESS;
+import java.util.UUID;
 
 @Component
-@RequiredArgsConstructor
-public class PaymentCreateMapper implements Mapper<PaymentRequestDto, Payment> {
+public class PaymentCreateMapper {
 
-    @Override
-    public Payment toEntity(PaymentRequestDto object) {
+    public Payment mapFrom(PaymentRequestDto object, UUID clientId, Status status) {
         return Payment.builder()
-                .shopName((object.shopName()))
+                .paymentDestination(object.paymentDestination())
                 .amount(object.amount())
-                .clientId(object.clientId())
-                .cardNo(object.cardNo())
+                .clientId(clientId)
+                .accountId(object.accountId())
+                .recipient(object.recipient())
                 .timeOfPay(LocalDateTime.now())
-                .status(object.status() == null ? SUCCESS : FAILED)
+                .status(status)
                 .build();
     }
 }

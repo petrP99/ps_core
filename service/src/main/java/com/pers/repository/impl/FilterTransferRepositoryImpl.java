@@ -4,6 +4,7 @@ import com.pers.dto.filter.TransferFilterDto;
 import com.pers.entity.Transfer;
 import com.pers.repository.FilterTransferRepository;
 import com.pers.repository.predicate.QPredicate;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -51,9 +52,8 @@ public class FilterTransferRepositoryImpl implements FilterTransferRepository {
 
     @Override
     public Page<Transfer> findAllByClientByFilter(TransferFilterDto filter, Pageable pageable, UUID clientId) {
-        var predicate = QPredicate.builder()
+        var filterPredicate = QPredicate.builder()
                 .add(filter.id(), transfer.id::eq)
-//                .add(clientId, transfer.clientId::eq)
 //                .add(filter.cardNoFrom(), transfer.cardIdFrom::eq)
 //                .add(filter.cardNoTo(), transfer.cardIdTo::eq)
                 .add(filter.amount(), transfer.amount::eq)
@@ -61,11 +61,15 @@ public class FilterTransferRepositoryImpl implements FilterTransferRepository {
                 .add(filter.recipient(), transfer.recipient::containsIgnoreCase)
                 .add(filter.status(), transfer.status::eq)
                 .buildAnd();
+        var clientPredicate = transfer.fromClientId.eq(clientId)
+                .or(transfer.toClientId.eq(clientId));
+        var predicate = ExpressionUtils.allOf(filterPredicate, clientPredicate);
 
         var query = new JPAQuery<Transfer>(entityManager)
                 .select(transfer)
                 .from(transfer)
-                .where(predicate);
+                .where(predicate)
+                .orderBy(transfer.timeOfTransfer.desc());
 
         List<Transfer> content = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

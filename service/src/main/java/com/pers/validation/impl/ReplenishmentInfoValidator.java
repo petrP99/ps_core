@@ -10,6 +10,6 @@ import static org.springframework.util.StringUtils.hasText;
 public class ReplenishmentInfoValidator implements ConstraintValidator<ReplenishmentInfo, ReplenishmentRequestDto> {
     @Override
     public boolean isValid(ReplenishmentRequestDto value, ConstraintValidatorContext context) {
-        return hasText(String.valueOf(value.amount())) && hasText(value.cardNo());
+        return value != null && value.amount() != null && value.accountId() != null;
     }
 }

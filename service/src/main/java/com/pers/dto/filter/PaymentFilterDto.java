@@ -1,5 +1,6 @@
 package com.pers.dto.filter;
 
+import com.pers.enums.PaymentRecipient;
 import com.pers.enums.Status;
 import lombok.Builder;
 
@@ -9,11 +10,12 @@ import java.util.UUID;
 
 @Builder
 public record PaymentFilterDto(
-        Long id,
-        String shopName,
+        UUID id,
+        String paymentDestination,
         BigDecimal amount,
         UUID clientId,
-        Long cardId,
+        UUID accountId,
+        PaymentRecipient recipient,
         LocalDateTime timeOfPay,
         Status status
 ) {

@@ -8,10 +8,15 @@ import java.util.List;
 import java.util.UUID;
 
 
-public interface ReplenishmentRepository extends JpaRepository<Replenishment, Long>,
+public interface ReplenishmentRepository extends JpaRepository<Replenishment, UUID>,
         FilterReplenishmentRepository,
         QuerydslPredicateExecutor<Replenishment> {
 
-    List<Replenishment> findAllByClientId(UUID id);
+    List<Replenishment> findAllByClientIdOrderByTimeOfReplenishmentDesc(UUID id);
+
+    List<Replenishment> findAllByAccountIdAndClientIdOrderByTimeOfReplenishmentDesc(
+            UUID accountId,
+            UUID clientId
+    );
 
 }

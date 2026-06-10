@@ -1,5 +1,6 @@
 package com.pers.entity;
 
+import com.pers.enums.PaymentRecipient;
 import com.pers.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,17 +27,17 @@ import java.util.UUID;
 @ToString
 @Builder
 @Entity
-public class Payment implements BaseEntity<Long> {
+public class Payment implements BaseEntity<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "client_id")
     private UUID clientId;
 
-    @Column(name = "card_no")
-    private String cardNo;
+    @Column(name = "account_id", nullable = false)
+    private UUID accountId;
 
     private LocalDateTime timeOfPay;
 
@@ -45,7 +46,10 @@ public class Payment implements BaseEntity<Long> {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private String recipient;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentRecipient recipient;
 
-    private String shopName;
+    @Column(name = "payment_destination", nullable = false)
+    private String paymentDestination;
 }

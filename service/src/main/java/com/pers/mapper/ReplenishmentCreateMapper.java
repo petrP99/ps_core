@@ -13,19 +13,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReplenishmentCreateMapper {
 
-    public Replenishment mapFrom(ReplenishmentRequestDto object, Status status) {
-        return Replenishment.builder()
-                .cardNo(object.cardNo())
-                .amount(object.amount())
-                .timeOfReplenishment(LocalDateTime.now())
-                .status(status)
-                .build();
-    }
-
     public Replenishment mapFrom(ReplenishmentRequestDto object, Status status, UUID clientId) {
         return Replenishment.builder()
                 .clientId(clientId)
-                .cardNo(object.cardNo())
+                .accountId(object.accountId())
                 .amount(object.amount())
                 .timeOfReplenishment(LocalDateTime.now())
                 .status(status)

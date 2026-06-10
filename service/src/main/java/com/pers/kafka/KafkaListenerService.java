@@ -1,7 +1,7 @@
 package com.pers.kafka;
 
-import com.pers.dto.request.TransferRequestDto;
 import com.pers.dto.event.AccountCloseEvent;
+import com.pers.dto.request.TransferEventDto;
 import com.pers.service.AccountClosureService;
 import com.pers.service.TransferService;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +18,9 @@ public class KafkaListenerService {
     private final AccountClosureService accountClosureService;
 
     @KafkaListener(topics = "${spring.kafka.topics.transfer-create}", groupId = "ps-group")
-    public void listenTransferStatus(TransferRequestDto transfer) throws InterruptedException {
+    public void listenTransferStatus(TransferEventDto transfer) throws InterruptedException {
         log.info("Received transfer status event: {}", transfer);
-        Thread.sleep(5000); // todo
+//        Thread.sleep(5000); // todo
         transferService.completeTransfer(transfer);
     }
 
@@ -29,4 +29,6 @@ public class KafkaListenerService {
         log.info("Received account close event: {}", event);
         accountClosureService.completeClosure(event);
     }
+
 }
+

@@ -17,9 +17,13 @@ public class TransferReadMapper implements Mapper<Transfer, TransferResponseDto>
                 object.getAmount(),
                 object.getTimeOfTransfer(),
                 object.getRecipient(),
+                object.getRecipientPhone(),
                 object.getMessage(),
                 object.getStatus(),
                 object.getAmountTo(),
+                object.getExchangeRate(),
+                object.getCommission(),
+                object.getDebitAmount(),
                 object.getCurrency(),
                 object.getTargetCurrency(),
                 isExchange(object)
@@ -27,7 +31,8 @@ public class TransferReadMapper implements Mapper<Transfer, TransferResponseDto>
     }
 
     private boolean isExchange(Transfer transfer) {
-        return transfer.getAmountTo() != null &&
-               !transfer.getAmount().equals(transfer.getAmountTo());
+        return transfer.getCurrency() != null
+               && transfer.getTargetCurrency() != null
+               && transfer.getCurrency() != transfer.getTargetCurrency();
     }
 }

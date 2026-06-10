@@ -3,6 +3,7 @@ package com.pers.service;
 import com.pers.dto.request.AccountRequestDto;
 import com.pers.dto.response.AccountResponseDto;
 import com.pers.entity.Account;
+import com.pers.enums.Operation;
 import com.pers.mapper.AccountCreateMapper;
 import com.pers.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -78,5 +79,19 @@ public class AccountService {
                 account.getStatus(),
                 cards
         );
+    }
+
+    public void changeBalance(UUID accountId, BigDecimal amount, Operation operation) {
+        accountRepository.findById(accountId).ifPresent(
+                account -> {
+                    BigDecimal balance = account.getBalance();
+                    if (operation.equals(Operation.SUBTRACT)) {
+                        balance = balance.subtract(amount);
+                    } else {
+                        balance = balance.add(amount);
+                    }
+                    account.setBalance(balance);
+                    accountRepository.save(account);
+                });
     }
 }

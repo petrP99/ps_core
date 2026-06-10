@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record TransferResponseDto(
-        Long id,
+        UUID id,
         UUID fromClientId,
         UUID toClientId,
         String cardFrom,
@@ -16,9 +16,13 @@ public record TransferResponseDto(
         BigDecimal amount,
         LocalDateTime timeOfTransfer,
         String recipient,
+        String recipientPhone,
         String message,
         Status status,
         BigDecimal amountTo,
+        BigDecimal exchangeRate,
+        BigDecimal commission,
+        BigDecimal debitAmount,
         Currency currency,
         Currency targetCurrency,
         boolean isExchange

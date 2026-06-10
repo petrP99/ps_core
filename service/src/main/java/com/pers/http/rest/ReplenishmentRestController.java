@@ -1,18 +1,12 @@
 package com.pers.http.rest;
 
-import com.pers.dto.response.CardResponseDto;
 import com.pers.dto.response.ReplenishmentResponseDto;
 import com.pers.dto.request.ReplenishmentRequestDto;
-import com.pers.dto.filter.PageResponse;
-import com.pers.dto.filter.ReplenishmentFilterDto;
 import com.pers.http.config.CurrentClientId;
-import com.pers.service.CardService;
 import com.pers.service.ReplenishmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,41 +25,27 @@ import java.util.UUID;
 public class ReplenishmentRestController {
 
     private final ReplenishmentService replenishmentService;
-    private final CardService cardService;
 
     @PostMapping
-    public ResponseEntity<Boolean> create(@Validated @RequestBody ReplenishmentRequestDto replenishment) {
-        boolean result = replenishmentService.checkAndCreateReplenishment(replenishment);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<ReplenishmentResponseDto> replenish(
+            @Validated @RequestBody ReplenishmentRequestDto request,
+            @CurrentClientId UUID clientId
+    ) {
+        return ResponseEntity.ok(replenishmentService.replenish(request, clientId));
     }
 
     @GetMapping("/my")
-    public PageResponse<ReplenishmentResponseDto> clientReplenishments(ReplenishmentFilterDto filter, Pageable pageable, @CurrentClientId UUID clientId) {
-        return PageResponse.of(replenishmentService.findByClientByFilter(filter, pageable, clientId));
+    public ResponseEntity<List<ReplenishmentResponseDto>> getMyReplenishments(
+            @CurrentClientId UUID clientId
+    ) {
+        return ResponseEntity.ok(replenishmentService.findByClientId(clientId));
     }
 
-    @GetMapping("/cards")
-    public ResponseEntity<List<CardResponseDto>> getCardsForReplenishment(@CurrentClientId UUID clientId) {
-        var cards = cardService.findByClientId(clientId);
-        return ResponseEntity.ok(cards);
+    @GetMapping("/accounts/{accountId}")
+    public ResponseEntity<List<ReplenishmentResponseDto>> getByAccount(
+            @PathVariable UUID accountId,
+            @CurrentClientId UUID clientId
+    ) {
+        return ResponseEntity.ok(replenishmentService.findByAccountId(accountId, clientId));
     }
-
-//    @GetMapping("/cards/{cardId}")
-//    public ResponseEntity<?> getCardForReplenishment(@PathVariable UUID cardId) {
-//        return cardService.findByNumber(cardId)
-//                .map(ResponseEntity::ok)
-//                .orElse(ResponseEntity.notFound().build());
-//    }
-
-    /**
-     * Methods for the Admins
-     */
-
-    // todo заменить на поиск по ид
-    @GetMapping("/findAll")
-    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public PageResponse<ReplenishmentResponseDto> allReplenishments(ReplenishmentFilterDto filter, Pageable pageable) {
-        return PageResponse.of(replenishmentService.findAllByFilter(filter, pageable));
-    }
-
 }

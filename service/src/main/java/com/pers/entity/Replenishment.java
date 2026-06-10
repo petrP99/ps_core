@@ -23,21 +23,21 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id", "clientId", "cardNo"})
+@EqualsAndHashCode(of = "id")
 @ToString
 @Builder
 @Entity
-public class Replenishment implements BaseEntity<Long> {
+public class Replenishment implements BaseEntity<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "client_id")
     private UUID clientId;
 
-    @Column(name = "card_no")
-    private String cardNo;
+    @Column(name = "account_id", nullable = false)
+    private UUID accountId;
 
     @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;
