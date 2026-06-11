@@ -66,7 +66,7 @@ public class Account implements BaseEntity<UUID> {
     /**
      * Кэшбэк в процентах.
      */
-    @Column(nullable = true)
+    @Column
     private Integer cashback;
 
     /**

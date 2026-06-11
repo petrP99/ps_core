@@ -1,6 +1,5 @@
 package com.pers.service;
 
-import com.pers.dto.filter.TransferFilterDto;
 import com.pers.dto.request.PhoneTransferPreviewRequestDto;
 import com.pers.dto.request.PhoneTransferRequestDto;
 import com.pers.dto.request.TransferEventDto;

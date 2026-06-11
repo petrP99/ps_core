@@ -13,7 +13,6 @@ import java.util.UUID;
 
 
 public interface CardRepository extends JpaRepository<Card, UUID>,
-        FilterCardRepository,
         QuerydslPredicateExecutor<Card> {
 
     List<Card> findAllByAccountId(UUID accountId);

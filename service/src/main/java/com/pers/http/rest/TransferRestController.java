@@ -1,7 +1,6 @@
 package com.pers.http.rest;
 
 import com.pers.dto.filter.PageResponse;
-import com.pers.dto.filter.TransferFilterDto;
 import com.pers.dto.request.PhoneTransferPreviewRequestDto;
 import com.pers.dto.request.PhoneTransferRequestDto;
 import com.pers.dto.request.TransferPreviewRequestDto;
@@ -10,8 +9,8 @@ import com.pers.dto.response.CardResponseDto;
 import com.pers.dto.response.TransferHistoryResponseDto;
 import com.pers.dto.response.TransferPreviewResponseDto;
 import com.pers.dto.response.TransferResponseDto;
-import com.pers.exception.TransferException;
 import com.pers.exception.ErrorCode;
+import com.pers.exception.TransferException;
 import com.pers.http.config.CurrentClientId;
 import com.pers.service.CardService;
 import com.pers.service.TransferService;

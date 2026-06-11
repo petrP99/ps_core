@@ -71,15 +71,13 @@ public class CurrencyService {
     }
 
     private void fallbackToDatabase() {
-        currencyProperties.targetCurrencies().forEach(currency -> {
-            repository.findById(currency).ifPresentOrElse(
-                    record -> {
-                        redisTemplate.opsForValue().set(REDIS_PREFIX + currency, record.getRate().toString());
-                        log.info("Восстановлен курс из БД для {}: {}", currency, record.getRate());
-                    },
-                    () -> log.error("В БД нет данных для валюты {}", currency)
-            );
-        });
+        currencyProperties.targetCurrencies().forEach(currency -> repository.findById(currency).ifPresentOrElse(
+                record -> {
+                    redisTemplate.opsForValue().set(REDIS_PREFIX + currency, record.getRate().toString());
+                    log.info("Восстановлен курс из БД для {}: {}", currency, record.getRate());
+                },
+                () -> log.error("В БД нет данных для валюты {}", currency)
+        ));
     }
 
     // Метод для получения курса другими сервисами (всегда из Redis)
