@@ -12,8 +12,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID>,
         FilterPaymentRepository,
         QuerydslPredicateExecutor<Payment> {
 
-//    List<Payment> findAllByClientIdOrderByTimeOfPayDesc(UUID clientId);
-
     Optional<Payment> findByIdAndClientId(UUID id, UUID clientId);
 
 }

@@ -16,8 +16,6 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
         FilterCardRepository,
         QuerydslPredicateExecutor<Card> {
 
-//    List<Card> findByClientId(UUID clientId);
-
     List<Card> findAllByAccountId(UUID accountId);
 
     @Query("""
@@ -76,8 +74,6 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
                 WHERE c.cardNumber = :number
             """)
     Optional<CardResponseDto> findByNumber(@Param("number") String number);
-
-//    List<Card> findByClientPhone(String phone); // todo
 
     @Query("""
                 SELECT new com.pers.dto.response.CardResponseDto(

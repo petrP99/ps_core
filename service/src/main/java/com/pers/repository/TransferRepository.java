@@ -14,7 +14,6 @@ import java.util.UUID;
 
 
 public interface TransferRepository extends JpaRepository<Transfer, UUID>,
-        FilterTransferRepository,
         QuerydslPredicateExecutor<Transfer> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

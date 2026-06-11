@@ -96,11 +96,10 @@ public class TransferRestController {
 
     @GetMapping("/my")
     public PageResponse<TransferHistoryResponseDto> clientTransfers(
-            TransferFilterDto filter,
             Pageable pageable,
             @CurrentClientId UUID clientId
     ) {
-        return PageResponse.of(transferService.findHistoryByClient(filter, pageable, clientId));
+        return PageResponse.of(transferService.findHistoryByClient(pageable, clientId));
     }
 
     @GetMapping("/history/{id}")

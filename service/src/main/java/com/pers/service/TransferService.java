@@ -280,7 +280,7 @@ public class TransferService {
                 .filter(card -> card.currency() == RUB)
                 .filter(card -> !Objects.equals(card.accountId(), cardFrom.accountId()))
                 .sorted(Comparator.comparing(CardResponseDto::cardNumber))
-                .findFirst()
+                .findAny()
                 .orElseThrow(() -> new TransferException(
                         CONFLICT,
                         ErrorCode.TRANSFER_RECIPIENT_RUB_CARD_UNAVAILABLE
@@ -413,7 +413,6 @@ public class TransferService {
     }
 
     public Page<TransferHistoryResponseDto> findHistoryByClient(
-            TransferFilterDto filter,
             Pageable pageable,
             UUID clientId
     ) {

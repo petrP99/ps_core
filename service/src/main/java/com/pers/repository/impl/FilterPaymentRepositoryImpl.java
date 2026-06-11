@@ -23,21 +23,6 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
 
     private final EntityManager entityManager;
 
-//    @Override
-    public Page<Payment> findAllByFilter(PaymentFilterDto filter, Pageable pageable) {
-        var predicate = QPredicate.builder()
-                .add(filter.id(), payment.id::eq)
-                .add(filter.clientId(), payment.clientId::eq)
-                .add(filter.paymentDestination(), payment.paymentDestination::containsIgnoreCase)
-                .add(filter.amount(), payment.amount::eq)
-                .add(filter.accountId(), payment.accountId::eq)
-                .add(filter.recipient(), payment.recipient::eq)
-                .add(filter.status(), payment.status::eq)
-                .buildAnd();
-
-        return getPayments(pageable, predicate);
-    }
-
     @Override
     public Page<Payment> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, UUID clientId) {
         var predicate = QPredicate.builder()

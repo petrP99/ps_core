@@ -9,7 +9,6 @@ import java.util.UUID;
 
 
 public interface ReplenishmentRepository extends JpaRepository<Replenishment, UUID>,
-        FilterReplenishmentRepository,
         QuerydslPredicateExecutor<Replenishment> {
 
     List<Replenishment> findAllByClientIdOrderByTimeOfReplenishmentDesc(UUID id);

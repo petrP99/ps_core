@@ -1,0 +1,135 @@
+{
+  "realm": "psproject",
+  "enabled": true,
+  "displayName": "PS Project",
+  "accessTokenLifespan": 3600,
+  "sslRequired": "none",
+  "loginTheme": "payflow",
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "ru",
+    "en"
+  ],
+  "defaultLocale": "ru",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "attributes": {
+    "userProfileEnabled": "true",
+    "registrationAllowed": "true",
+    "loginWithEmailAllowed": "true",
+    "registrationEmailAsUsername": "true"
+  },
+  "roles": {
+    "realm": [
+      {
+        "name": "USER",
+        "description": "Regular user"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrator"
+      },
+      {
+        "name": "SUPER_ADMIN",
+        "description": "Super administrator"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@psproject.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN",
+        "SUPER_ADMIN"
+      ]
+    },
+    {
+      "username": "user",
+      "email": "user@psproject.com",
+      "firstName": "Regular",
+      "lastName": "User",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER"
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "psproject-backend",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "psproject-secret",
+      "redirectUris": [
+        "*"
+      ],
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "psproject-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://localhost:5173/*",
+        "http://localhost:9090/*"
+      ],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "phone-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "phone",
+            "claim.name": "phone",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "defaultRoles": [
+    "USER"
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"Логин\",\"validations\":{\"email\":{\"max-local-length\":\"64\"}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"Email\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"Имя\",\"validations\":{\"length\":{\"max\":255},\"pattern\":{\"pattern\":\"^[а-яА-Яa-zA-Zё ]+$\",\"error-message\":\"Только буквы\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"Фамилия\",\"validations\":{\"length\":{\"max\":255},\"pattern\":{\"pattern\":\"^[а-яА-Яa-zA-Z ]+$\",\"error-message\":\"Только буквы\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"Телефон\",\"validations\":{\"pattern\":{\"pattern\":\"^\\\\+79\\\\d{9}$\",\"error-message\":\"Номер в формате +79...\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+          ]
+        }
+      }
+    ]
+  }
+}

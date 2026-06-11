@@ -10,10 +10,7 @@ import java.util.UUID;
 
 
 public interface ClientRepository extends JpaRepository<Client, UUID>,
-        FilterClientRepository,
         QuerydslPredicateExecutor<Client> {
-
-//    Optional<Client> findById(UUID id);
 
     Optional<Client> findByPhone(String phone);
 
