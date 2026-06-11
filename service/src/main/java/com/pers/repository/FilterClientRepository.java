@@ -7,6 +7,6 @@ import org.springframework.data.domain.Pageable;
 
 public interface FilterClientRepository {
 
-    Page<Client> findAllByFilter(ClientFilterDto filterDto, Pageable pageable);
+//    Page<Client> findAllByFilter(ClientFilterDto filterDto, Pageable pageable);
 
 }

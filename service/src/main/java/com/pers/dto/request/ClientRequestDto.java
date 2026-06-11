@@ -12,11 +12,11 @@ import lombok.experimental.FieldNameConstants;
 @Builder
 public record ClientRequestDto(
         @NotBlank
-        @Pattern(regexp = "[а-яА-яa-zA-Z]+", message = "field 'firstName' only accepts letters")
+        @Pattern(regexp = "[а-яА-яa-zA-Z]+", message = "{validation.client.first.name.letters}")
         String firstName,
         @NotBlank
-        @Pattern(regexp = "[а-яА-яa-zA-Z]+", message = "field 'lastName' only accepts letters")
+        @Pattern(regexp = "[а-яА-яa-zA-Z]+", message = "{validation.client.last.name.letters}")
         String lastName,
-        @Size(min = 11, max = 11, message = "field 'phone' only accepts numbers length 11")
-        String phone        ) {
+        @Size(min = 11, max = 11, message = "{validation.client.phone.size}")
+        String phone) {
 }

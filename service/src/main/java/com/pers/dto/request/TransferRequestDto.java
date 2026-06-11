@@ -28,26 +28,23 @@ public class TransferRequestDto {
     @Positive
     private BigDecimal amount;
 
-    private UUID fromClientId;
-    private UUID toClientId;
-
     @NotBlank
-    @Pattern(regexp = "\\d{16}", message = "Номер карты отправителя должен содержать 16 цифр")
+    @Pattern(regexp = "\\d{16}", message = "{validation.card.sender.number}")
     private String cardFrom;
 
     @NotBlank
-    @Pattern(regexp = "\\d{16}", message = "Номер карты получателя должен содержать 16 цифр")
+    @Pattern(regexp = "\\d{16}", message = "{validation.card.recipient.number}")
     private String cardTo;
-
-    private LocalDateTime time;
 
     @Size(max = 120)
     private String recipient;
 
-    private String recipientPhone;
-
     @Size(max = 120)
     private String message;
+    private UUID fromClientId;
+    private UUID toClientId;
+    private String recipientPhone;
+    private LocalDateTime time;
     private Status status;
     private BigDecimal amountTo;
     private BigDecimal exchangeRate;

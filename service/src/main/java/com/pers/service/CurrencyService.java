@@ -1,10 +1,13 @@
 package com.pers.service;
 
+import com.pers.config.CurrencyProperties;
 import com.pers.dto.response.CbrResponseDto;
 import com.pers.dto.response.CurrencyRateResponseDto;
 import com.pers.dto.response.CurrencyRatesResponseDto;
 import com.pers.entity.ExchangeRate;
 import com.pers.enums.Currency;
+import com.pers.exception.CurrencyException;
+import com.pers.exception.ErrorCode;
 import com.pers.repository.ExchangeRateRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,23 +20,21 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import static com.pers.enums.Currency.CNY;
 import static com.pers.enums.Currency.RUB;
-import static com.pers.enums.Currency.USD;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class CurrencyService {
 
-
     private final ExchangeRateRepository repository;
     private final RedisTemplate<String, String> redisTemplate;
     private final RestTemplate restTemplate;
-    private final List<String> targetCurrencies = List.of(USD.name(), CNY.name()); // todo вынести в расширяемый из вне лист
+    private final CurrencyProperties currencyProperties;
 
     @Value("${value.exchangeRate.url}")
     private String API_URL;
@@ -41,21 +42,22 @@ public class CurrencyService {
 
     @Transactional
     public void updateRates() {
+        LocalDate today = LocalDate.now();
         try {
-            log.info("Запрос свежих курсов...");
+            log.info("Запрос свежих курсов на {}", today);
             CbrResponseDto response = restTemplate.getForObject(API_URL, CbrResponseDto.class);
             if (response != null) {
                 Map<String, BigDecimal> rates = response.getRates();
 
-                targetCurrencies.forEach(code -> {
-                    BigDecimal rateFromApi = rates.get(code);
+                currencyProperties.targetCurrencies().forEach(currency -> {
+                    BigDecimal rateFromApi = rates.getOrDefault(currency.name(), BigDecimal.ZERO);
 
-                    if (rateFromApi != null && rateFromApi.compareTo(BigDecimal.ZERO) > 0) {
+                    if (rateFromApi.compareTo(BigDecimal.ZERO) != 0) {
                         BigDecimal finalRate = BigDecimal.ONE.divide(rateFromApi, 2, RoundingMode.HALF_UP);
-                        saveRate(code, finalRate);
+                        saveRate(currency, finalRate);
                     }
                 });
-                log.info("Курсы успешно обновлены.");
+                log.info("Курсы на {} успешно обновлены.", today);
             }
         } catch (Exception e) {
             log.error("Ошибка при получении курсов из API: {}. Используем fallback из БД.", e.getMessage());
@@ -63,19 +65,19 @@ public class CurrencyService {
         }
     }
 
-    private void saveRate(String code, BigDecimal rate) {
-        repository.save(new ExchangeRate(Currency.valueOf(code), rate, LocalDate.now()));
-        redisTemplate.opsForValue().set(REDIS_PREFIX + code, rate.toString());
+    private void saveRate(Currency currency, BigDecimal rate) {
+        repository.save(new ExchangeRate(currency, rate, LocalDate.now()));
+        redisTemplate.opsForValue().set(REDIS_PREFIX + currency, rate.toString());
     }
 
     private void fallbackToDatabase() {
-        targetCurrencies.forEach(code -> {
-            repository.findById(Currency.valueOf(code)).ifPresentOrElse(
+        currencyProperties.targetCurrencies().forEach(currency -> {
+            repository.findById(currency).ifPresentOrElse(
                     record -> {
-                        redisTemplate.opsForValue().set(REDIS_PREFIX + code, record.getRate().toString());
-                        log.info("Восстановлен курс из БД для {}: {}", code, record.getRate());
+                        redisTemplate.opsForValue().set(REDIS_PREFIX + currency, record.getRate().toString());
+                        log.info("Восстановлен курс из БД для {}: {}", currency, record.getRate());
                     },
-                    () -> log.error("В БД нет данных для валюты {}", code)
+                    () -> log.error("В БД нет данных для валюты {}", currency)
             );
         });
     }
@@ -91,16 +93,21 @@ public class CurrencyService {
         }
         return repository.findById(code)
                 .map(ExchangeRate::getRate)
-                .orElseThrow(() -> new IllegalStateException("Курс валюты " + code + " не найден"));
+                .orElseThrow(() -> new CurrencyException(NOT_FOUND, ErrorCode.CURRENCY_RATE_NOT_FOUND, code));
     }
 
     public CurrencyRatesResponseDto getRates() {
         return new CurrencyRatesResponseDto(
-                List.of(
-                        new CurrencyRateResponseDto(RUB, getRateFromCache(RUB)),
-                        new CurrencyRateResponseDto(USD, getRateFromCache(USD)),
-                        new CurrencyRateResponseDto(CNY, getRateFromCache(CNY))
-                )
+                Stream.concat(
+                                Stream.of(RUB),
+                                currencyProperties.targetCurrencies().stream()
+                        )
+                        .distinct()
+                        .map(currency -> new CurrencyRateResponseDto(
+                                currency,
+                                getRateFromCache(currency)
+                        ))
+                        .toList()
         );
     }
 

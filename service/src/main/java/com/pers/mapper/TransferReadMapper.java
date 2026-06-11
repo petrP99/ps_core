@@ -32,7 +32,7 @@ public class TransferReadMapper implements Mapper<Transfer, TransferResponseDto>
 
     private boolean isExchange(Transfer transfer) {
         return transfer.getCurrency() != null
-               && transfer.getTargetCurrency() != null
-               && transfer.getCurrency() != transfer.getTargetCurrency();
+                && transfer.getTargetCurrency() != null
+                && transfer.getCurrency() != transfer.getTargetCurrency();
     }
 }

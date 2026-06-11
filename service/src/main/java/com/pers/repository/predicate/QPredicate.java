@@ -32,9 +32,4 @@ public class QPredicate {
                 .orElseGet(() -> Expressions.asBoolean(true).isTrue());
     }
 
-    public Predicate buildOr() {
-        return Optional.ofNullable(ExpressionUtils.anyOf(predicates))
-                .orElseGet(() -> Expressions.asBoolean(true).isTrue());
-    }
-
 }

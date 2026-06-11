@@ -27,7 +27,7 @@ public class OutboxScheduler {
         outboxPublisherService.publishBatch();
     }
 
-    @Scheduled(cron = "${outbox.publisher.cleanup-cron:0 0 3 * * *}")
+    @Scheduled(cron = "${outbox.publisher.cleanup-cron:0 * * * * *}")
     public void cleanupPublishedEvents() {
         int deleted = outboxPublisherService.deletePublishedBefore(
                 LocalDateTime.now().minusDays(retentionDays)

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pers.dto.request.TransferEventDto;
 import com.pers.entity.OutboxEvent;
-import com.pers.enums.OutboxEventStatus;
+import com.pers.enums.OutboxEventType;
 import com.pers.kafka.KafkaProducerService;
 import com.pers.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -48,12 +49,12 @@ public class OutboxPublisherService {
         return outboxEventRepository.deletePublishedBefore(cutoff);
     }
 
-    private void publish(OutboxEvent event) {
+    private void publish(com.pers.entity.OutboxEvent event) {
         try {
-            switch (event.getEventType()) {
-                case TRANSFER_CREATED -> publishTransferCreated(event);
+            if (Objects.requireNonNull(event.getEventType()) == OutboxEventType.TRANSFER_CREATED) {
+                publishTransferCreated(event);
             }
-            event.setStatus(OutboxEventStatus.PUBLISHED);
+            event.setStatus(OutboxEventType.PUBLISHED);
             event.setPublishedAt(LocalDateTime.now());
             event.setLastError(null);
         } catch (Exception e) {
@@ -61,18 +62,18 @@ public class OutboxPublisherService {
         }
     }
 
-    private void publishTransferCreated(OutboxEvent event) throws JsonProcessingException {
+    private void publishTransferCreated(com.pers.entity.OutboxEvent event) throws JsonProcessingException {
         TransferEventDto payload = objectMapper.readValue(event.getPayload(), TransferEventDto.class);
         kafkaProducerService.sendTransferCreateEvent(event.getEventKey(), payload);
     }
 
-    private void scheduleRetry(OutboxEvent event, Exception exception) {
+    private void scheduleRetry(com.pers.entity.OutboxEvent event, Exception exception) {
         int attempts = event.getAttempts() + 1;
         event.setAttempts(attempts);
         event.setLastError(limitErrorMessage(exception));
 
         if (attempts >= maxAttempts) {
-            event.setStatus(OutboxEventStatus.FAILED);
+            event.setStatus(OutboxEventType.FAILED);
             log.error("Outbox event {} reached max attempts", event.getId(), exception);
             return;
         }
@@ -80,7 +81,7 @@ public class OutboxPublisherService {
         long multiplier = 1L << Math.min(attempts - 1, 6);
         long delaySeconds = Math.min(retryDelaySeconds * multiplier, MAX_RETRY_DELAY_SECONDS);
         event.setNextAttemptAt(LocalDateTime.now().plusSeconds(delaySeconds));
-        log.warn("Outbox event {} publish failed, retry {} scheduled in {} seconds",
+        log.info("Outbox event {} publish failed, retry {} scheduled in {} seconds",
                 event.getId(), attempts, delaySeconds);
     }
 

@@ -4,26 +4,28 @@ import com.pers.dto.request.CardRequestDto;
 import com.pers.dto.response.CardResponseDto;
 import com.pers.entity.Card;
 import com.pers.enums.Status;
-import com.pers.mapper.CardCreateMapper;
+import com.pers.exception.CardException;
+import com.pers.exception.ErrorCode;
+import com.pers.mapper.CardMapper;
 import com.pers.repository.AccountRepository;
 import com.pers.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.pers.enums.Status.ACTIVE;
 import static com.pers.util.constant.Constants.CARD_NUMBER_LENGTH;
 import static com.pers.util.constant.Constants.CURRENCY_PREFIXES;
 import static com.pers.util.constant.Constants.DEFAULT_CARD_NUMBER_PREFIX;
-import static com.pers.enums.AccountStatus.ACTIVE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Slf4j
@@ -34,92 +36,19 @@ public class CardService {
 
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
-    private final CardCreateMapper cardCreateMapper;
-
-    public Optional<CardResponseDto> findByNumber(String number) {
-        return cardRepository.findByNumber(number);
-    }
+    private final CardMapper cardMapper;
 
     public Optional<CardResponseDto> findById(UUID id) {
         return cardRepository.findCardWithBalanceById(id);
-    }
-
-    public void updateStatusToExpired(CardResponseDto cardDto) {
-        Optional.of(cardDto)
-                .map(cardCreateMapper::mapStatusExpired)
-                .map(cardRepository::saveAndFlush);
-    }
-
-    public boolean delete(UUID id) {
-        return cardRepository.findById(id)
-                .map(entity -> {
-                    cardRepository.delete(entity);
-                    cardRepository.flush();
-                    return true;
-                })
-                .orElse(false);
     }
 
     public List<CardResponseDto> findByClientId(UUID clientId) {
         return cardRepository.findCardsWithBalanceByClientId(clientId);
     }
 
-//    public List<CardResponseDto> findActiveCardsAndPositiveBalanceByClientId(UUID clientId) {
-//        return cardRepository.findByClientId(clientId).stream()
-//                .map(cardReadMapper::toDto)
-//                .filter(dto -> dto.status() == Status.ACTIVE && dto.balance().compareTo(BigDecimal.ZERO) > 0)
-//                .toList();
-//    }
-
-//    public Optional<CardResponseDto> findCardByClientPhone(String phone) {
-//        Optional<Client> byPhone = Optional.of(clientRepository.findByPhone(phone)
-//                .orElseThrow(() -> new RuntimeException("Клиент по такому номер не найден")));
-//        return cardRepository.findByClientId(byPhone.get().getId()).stream()
-//                .map(cardReadMapper::toDto)
-//                .filter(card -> card.status() == Status.ACTIVE)
-//                .findFirst();
-//    }
-
-//    public Page<CardResponseDto> findAllByFilter(CardFilterDto filter, Pageable pageable) {
-//        return cardRepository.findAllByFilter(filter, pageable)
-//                .map(cardReadMapper::toDto);
-//    }
-
-    //    public List<CardResponseDto> findActiveCardsByClientId(UUID clientId) {
-//        return cardRepository.findByClientId(clientId).stream()
-//                .map(cardReadMapper::toDto)
-//                .filter(dto -> dto.status() == Status.ACTIVE)
-//                .toList();
-//    }
-//
     public List<CardResponseDto> findByAccountId(UUID accountId) {
         return cardRepository.findByAccountId(accountId);
     }
-
-//    @Scheduled(cron = "0 0 0 * * *")
-//    public void checkCardExpire() {
-//        cardRepository.findAll().stream()
-//                .map(cardReadMapper::toDto)
-//                .filter(card -> card.status() == Status.ACTIVE && card.expireDate().isBefore(LocalDate.now()))
-//                .forEach(this::updateStatusToExpired);
-//    }
-
-//    public String createUniqueCardNumber() {
-//        String cardNumber;
-//        do {
-//            cardNumber = generateCardNumber();
-//        } while (cardRepository.existsByCardNumber(cardNumber));
-//        return cardNumber;
-//    }
-
-//    private String generateCardNumber() {
-//        ThreadLocalRandom random = ThreadLocalRandom.current();
-//        StringBuilder sb = new StringBuilder(CARD_NUMBER_PREFIX);
-//        for (int i = 0; i < CARD_NUMBER_LENGTH - CARD_NUMBER_PREFIX.length(); i++) {
-//            sb.append(random.nextInt(10));
-//        }
-//        return sb.toString();
-//    }
 
     @Transactional
     public CardResponseDto create(UUID clientId, CardRequestDto dto) {
@@ -127,19 +56,28 @@ public class CardService {
                 dto.name(), clientId, dto.currency(), dto.isPremium());
 
         var account = accountRepository.findByIdAndClientId(dto.accountId(), clientId)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Счет не найден"));
+                .orElseThrow(() -> new CardException(
+                        NOT_FOUND,
+                        ErrorCode.ACCOUNT_NOT_FOUND,
+                        dto.accountId()
+                ));
         if (account.getStatus() != ACTIVE) {
-            throw new ResponseStatusException(CONFLICT, "Нельзя создать карту для закрытого счета");
+            throw new CardException(CONFLICT, ErrorCode.CARD_CREATE_CLOSED_ACCOUNT);
         }
         if (account.getCurrency() != dto.currency()) {
-            throw new ResponseStatusException(BAD_REQUEST, "Валюта карты должна совпадать с валютой счета");
+            throw new CardException(BAD_REQUEST, ErrorCode.CARD_CURRENCY_MISMATCH);
         }
 
         String prefix = CURRENCY_PREFIXES.getOrDefault(account.getCurrency(), DEFAULT_CARD_NUMBER_PREFIX);
         String cardNumber = generateUniqueCardNumber(prefix, Boolean.TRUE.equals(dto.isPremium()));
-        Card card = cardCreateMapper.toEntity(dto, clientId, cardNumber);
+        Card card = cardMapper.toEntity(dto, clientId, cardNumber);
         Card savedCard = cardRepository.save(card);
-        return cardRepository.findByNumber(savedCard.getCardNumber()).orElseThrow();
+        return cardRepository.findByNumber(savedCard.getCardNumber())
+                .orElseThrow(() -> new CardException(
+                        INTERNAL_SERVER_ERROR,
+                        ErrorCode.CARD_NUMBER_NOT_FOUND,
+                        savedCard.getCardNumber()
+                ));
 
     }
 
@@ -198,15 +136,16 @@ public class CardService {
 
     @Transactional
     public CardResponseDto blockById(UUID id) {
-        cardRepository.findById(id).ifPresent(card -> {
-            card.setStatus(Status.BLOCKED);
-            cardRepository.flush();
-        });
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new CardException(NOT_FOUND, ErrorCode.CARD_NOT_FOUND, id));
+        card.setStatus(Status.BLOCKED);
+        cardRepository.flush();
 
         return cardRepository.findCardWithBalanceById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new CardException(
+                        INTERNAL_SERVER_ERROR,
+                        ErrorCode.CARD_NOT_FOUND,
+                        id
+                ));
     }
 }
-
-
-

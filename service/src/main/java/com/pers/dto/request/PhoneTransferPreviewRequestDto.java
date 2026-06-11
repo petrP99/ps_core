@@ -10,11 +10,11 @@ import java.math.BigDecimal;
 
 public record PhoneTransferPreviewRequestDto(
         @NotBlank
-        @Pattern(regexp = "\\d{16}", message = "Номер карты отправителя должен содержать 16 цифр")
+        @Pattern(regexp = "\\d{16}", message = "{validation.card.sender.number}")
         String cardFrom,
 
         @NotBlank
-        @Pattern(regexp = "8\\d{10}", message = "Номер телефона должен содержать 11 цифр и начинаться с 8")
+        @Pattern(regexp = "8\\d{10}", message = "{validation.phone.number}")
         String phone,
 
         @NotNull

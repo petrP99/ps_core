@@ -4,20 +4,25 @@ import com.pers.dto.request.AccountTransferRequestDto;
 import com.pers.dto.response.AccountTransferResponseDto;
 import com.pers.entity.Account;
 import com.pers.entity.AccountTransfer;
-import com.pers.enums.AccountStatus;
+import com.pers.enums.Status;
+import com.pers.exception.AccountException;
+import com.pers.exception.ErrorCode;
 import com.pers.repository.AccountRepository;
 import com.pers.repository.AccountTransferRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +42,7 @@ public class AccountTransferService {
     @Transactional
     public AccountTransferResponseDto transfer(AccountTransferRequestDto request, UUID clientId) {
         if (Objects.equals(request.accountFrom(), request.accountTo())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Выберите разные счета");
+            throw new AccountException(BAD_REQUEST, ErrorCode.ACCOUNT_SAME);
         }
 
         UUID firstId = request.accountFrom().compareTo(request.accountTo()) < 0
@@ -90,14 +95,14 @@ public class AccountTransferService {
             Account accountTo
     ) {
         if (Objects.equals(accountFrom.getId(), accountTo.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Выберите разные счета");
+            throw new AccountException(BAD_REQUEST, ErrorCode.ACCOUNT_SAME);
         }
         validateAccount(accountFrom, clientId);
         validateAccount(accountTo, clientId);
 
         BigDecimal amount = request.amount().setScale(2, RoundingMode.HALF_UP);
         if (accountFrom.getBalance().compareTo(amount) < 0) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Недостаточно средств на счете");
+            throw new AccountException(CONFLICT, ErrorCode.ACCOUNT_INSUFFICIENT_FUNDS);
         }
 
         CurrencyService.ConversionResult conversion = currencyService.convert(
@@ -139,29 +144,28 @@ public class AccountTransferService {
 
     private Account findClientAccount(UUID accountId, UUID clientId) {
         return accountRepository.findByIdAndClientId(accountId, clientId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Счет не найден"
+                .orElseThrow(() -> new AccountException(
+                        NOT_FOUND,
+                        ErrorCode.ACCOUNT_NOT_FOUND,
+                        accountId
                 ));
     }
 
     private Account findAccountForUpdate(UUID accountId) {
         return accountRepository.findByIdForUpdate(accountId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Счет не найден"
+                .orElseThrow(() -> new AccountException(
+                        NOT_FOUND,
+                        ErrorCode.ACCOUNT_NOT_FOUND,
+                        accountId
                 ));
     }
 
     private void validateAccount(Account account, UUID clientId) {
         if (!Objects.equals(account.getClientId(), clientId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Счет не принадлежит текущему клиенту"
-            );
+            throw new AccountException(FORBIDDEN, ErrorCode.ACCOUNT_NOT_OWNED);
         }
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Счет закрыт");
+        if (account.getStatus() != Status.ACTIVE) {
+            throw new AccountException(CONFLICT, ErrorCode.ACCOUNT_CLOSED);
         }
     }
 }

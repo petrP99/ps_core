@@ -9,10 +9,10 @@ public class PaymentInfoValidator implements ConstraintValidator<PaymentInfo, Pa
     @Override
     public boolean isValid(PaymentRequestDto value, ConstraintValidatorContext context) {
         return value != null
-               && value.amount() != null
-               && value.accountId() != null
-               && value.recipient() != null
-               && value.paymentDestination() != null
-               && !value.paymentDestination().isBlank();
+                && value.amount() != null
+                && value.accountId() != null
+                && value.recipient() != null
+                && value.paymentDestination() != null
+                && !value.paymentDestination().isBlank();
     }
 }

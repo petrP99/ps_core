@@ -36,7 +36,7 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Bean
     public LocaleResolver localeResolver() {
         var localeResolver = new CookieLocaleResolver();
-        localeResolver.setDefaultLocale(Locale.US);
+        localeResolver.setDefaultLocale(Locale.forLanguageTag("ru"));
         return localeResolver;
     }
 
@@ -53,7 +53,7 @@ public class WebConfiguration implements WebMvcConfigurer {
                 new ReloadableResourceBundleMessageSource();
         messageSource.setBasename("classpath:messages");
         messageSource.setDefaultEncoding("UTF-8");
-        messageSource.setDefaultLocale(Locale.ENGLISH);
+        messageSource.setDefaultLocale(Locale.forLanguageTag("ru"));
         return messageSource;
     }
 }

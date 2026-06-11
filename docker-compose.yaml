@@ -69,6 +69,30 @@ services:
     command: [ "start-dev", "--import-realm" ]
     volumes:
       - ./keycloak:/opt/keycloak/data/import
+      - ./keycloak/themes:/opt/keycloak/themes
+
+  keycloak-config:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak-config
+    depends_on:
+      - keycloak
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        until /opt/keycloak/bin/kcadm.sh config credentials \
+          --server http://keycloak:8080 \
+          --realm master \
+          --user admin \
+          --password admin; do
+          sleep 2
+        done
+        /opt/keycloak/bin/kcadm.sh update realms/psproject \
+          -s loginTheme=payflow \
+          -s internationalizationEnabled=true \
+          -s 'supportedLocales=["ru","en"]' \
+          -s defaultLocale=ru \
+          -s registrationEmailAsUsername=true
+    restart: "no"
 
   redis:
     image: redis:7-alpine

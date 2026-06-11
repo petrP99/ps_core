@@ -15,6 +15,9 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * Обменный курс валюты.
+ */
 @Entity
 @Getter
 @Setter
@@ -24,10 +27,20 @@ import java.time.LocalDate;
 @Data
 public class ExchangeRate {
 
+    /**
+     * Код валюты.
+     */
     @Id
     @Enumerated(EnumType.STRING)
     private Currency currencyCode;
-    private BigDecimal rate;
-    private LocalDate updatedAt;
 
+    /**
+     * Текущий обменный курс.
+     */
+    private BigDecimal rate;
+
+    /**
+     * Дата последнего обновления курса.
+     */
+    private LocalDate updatedAt;
 }

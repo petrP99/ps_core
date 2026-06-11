@@ -68,6 +68,11 @@ value:
   exchangeRate:
     url: https://v6.exchangerate-api.com/v6/19c0929c9d29445d4cc474aa/latest/RUB
 
+currency:
+  target-currencies:
+    - USD
+    - CNY
+
 outbox:
   publisher:
     fixed-delay-ms: 1000

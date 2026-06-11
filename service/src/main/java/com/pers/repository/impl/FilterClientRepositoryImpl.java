@@ -21,7 +21,7 @@ public class FilterClientRepositoryImpl implements FilterClientRepository {
 
     private final EntityManager entityManager;
 
-    @Override
+    //    @Override
     public Page<Client> findAllByFilter(ClientFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), client.id::eq)
@@ -40,9 +40,8 @@ public class FilterClientRepositoryImpl implements FilterClientRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
-
     }
 }

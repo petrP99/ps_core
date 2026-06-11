@@ -2,7 +2,6 @@ package com.pers.mapper;
 
 import com.pers.dto.request.ClientRequestDto;
 import com.pers.entity.Client;
-import com.pers.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +10,9 @@ import java.util.Map;
 
 import static com.pers.enums.Status.ACTIVE;
 import static com.pers.enums.Status.BLOCKED;
+import static com.pers.util.constant.Constants.KEYCLOAK_FAMILY_NAME;
+import static com.pers.util.constant.Constants.KEYCLOAK_NAME;
+import static com.pers.util.constant.Constants.KEYCLOAK_PHONE;
 
 @Component
 @RequiredArgsConstructor
@@ -19,7 +21,6 @@ public class ClientCreateMapper implements Mapper<ClientRequestDto, Client> {
     @Override
     public Client toEntity(ClientRequestDto object) {
         return Client.builder()
-                .role(Role.USER)
                 .firstName(object.firstName())
                 .lastName(object.lastName())
                 .phone(object.phone())
@@ -38,19 +39,11 @@ public class ClientCreateMapper implements Mapper<ClientRequestDto, Client> {
         return toObject;
     }
 
-    public ClientRequestDto mapToDto(Client client) {
-        return ClientRequestDto.builder()
-                .firstName(client.getFirstName())
-                .lastName(client.getLastName())
-                .phone(client.getPhone())
-                .build();
-    }
-
     public ClientRequestDto mapToDto(Map<String, Object> attributes) {
         return ClientRequestDto.builder()
-                .firstName(attributes.get("name").toString())
-                .lastName(attributes.get("family_name").toString())
-                .phone(attributes.get("phone").toString())
+                .firstName(attributes.get(KEYCLOAK_NAME).toString())
+                .lastName(attributes.get(KEYCLOAK_FAMILY_NAME).toString())
+                .phone(attributes.get(KEYCLOAK_PHONE).toString())
                 .build();
     }
 }

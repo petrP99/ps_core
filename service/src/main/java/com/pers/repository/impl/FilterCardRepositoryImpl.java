@@ -20,10 +20,10 @@ public class FilterCardRepositoryImpl implements FilterCardRepository {
 
     private final EntityManager entityManager;
 
-    @Override
+//    @Override
     public Page<Card> findAllByFilter(CardFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
-//                .add(filter.id(), card.id::eq)
+                .add(filter.id(), card.id::eq)
                 .add(filter.clientId(), card.clientId::eq)
                 .add(filter.expireDate(), card.expireDate::before)
                 .add(filter.status(), card.status::eq)
@@ -38,10 +38,8 @@ public class FilterCardRepositoryImpl implements FilterCardRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
-
     }
-
 }

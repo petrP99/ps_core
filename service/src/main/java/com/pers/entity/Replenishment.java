@@ -20,6 +20,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Пополнение банковского счёта клиента.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,20 +32,39 @@ import java.util.UUID;
 @Entity
 public class Replenishment implements BaseEntity<UUID> {
 
+    /**
+     * Уникальный идентификатор пополнения.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /**
+     * Идентификатор клиента, пополнившего счёт.
+     */
     @Column(name = "client_id")
     private UUID clientId;
 
+    /**
+     * Идентификатор пополняемого счёта.
+     */
     @Column(name = "account_id", nullable = false)
     private UUID accountId;
 
+    /**
+     * Сумма пополнения.
+     */
     @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;
+
+    /**
+     * Дата и время пополнения.
+     */
     private LocalDateTime timeOfReplenishment;
 
+    /**
+     * Статус пополнения.
+     */
     @Enumerated(EnumType.STRING)
     private Status status;
 }

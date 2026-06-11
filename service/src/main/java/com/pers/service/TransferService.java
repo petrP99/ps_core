@@ -7,15 +7,16 @@ import com.pers.dto.request.TransferEventDto;
 import com.pers.dto.request.TransferPreviewRequestDto;
 import com.pers.dto.request.TransferRequestDto;
 import com.pers.dto.response.CardResponseDto;
-import com.pers.dto.response.TransferPreviewResponseDto;
 import com.pers.dto.response.TransferHistoryResponseDto;
+import com.pers.dto.response.TransferPreviewResponseDto;
 import com.pers.dto.response.TransferResponseDto;
 import com.pers.entity.Account;
 import com.pers.entity.AccountTransfer;
 import com.pers.entity.Client;
 import com.pers.entity.Transfer;
-import com.pers.enums.AccountStatus;
 import com.pers.enums.Status;
+import com.pers.exception.ErrorCode;
+import com.pers.exception.TransferException;
 import com.pers.mapper.TransferCreateMapper;
 import com.pers.mapper.TransferReadMapper;
 import com.pers.repository.AccountRepository;
@@ -29,24 +30,28 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.pers.enums.Currency.RUB;
 import static com.pers.enums.Status.FAILED;
 import static com.pers.enums.Status.IN_PROGRESS;
 import static com.pers.enums.Status.SUCCESS;
-import static com.pers.enums.Currency.RUB;
+import static com.pers.exception.ErrorCode.ACCOUNT_RECIPIENT_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 
 @Service
@@ -100,10 +105,7 @@ public class TransferService {
     }
 
     @Transactional(readOnly = true)
-    public TransferPreviewResponseDto previewTransfer(
-            TransferPreviewRequestDto preview,
-            UUID clientId
-    ) {
+    public TransferPreviewResponseDto previewTransfer(TransferPreviewRequestDto preview, UUID clientId) {
         TransferContext context = validateTransfer(
                 preview.cardFrom(),
                 preview.cardTo(),
@@ -130,22 +132,10 @@ public class TransferService {
     }
 
     @Transactional(readOnly = true)
-    public TransferPreviewResponseDto previewPhoneTransfer(
-            PhoneTransferPreviewRequestDto preview,
-            UUID clientId
-    ) {
-        CardResponseDto cardTo = resolvePhoneRecipientCard(
-                preview.phone(),
-                preview.cardFrom(),
-                clientId
-        );
-        TransferContext context = validateTransfer(
-                preview.cardFrom(),
-                cardTo.cardNumber(),
-                preview.amount(),
-                clientId,
-                false
-        );
+    public TransferPreviewResponseDto previewPhoneTransfer(PhoneTransferPreviewRequestDto preview, UUID clientId) {
+        CardResponseDto cardTo = resolvePhoneRecipientCard(preview.phone(), preview.cardFrom(), clientId);
+        TransferContext context = validateTransfer(preview.cardFrom(), cardTo.cardNumber(),
+                preview.amount(), clientId, false);
 
         return new TransferPreviewResponseDto(
                 preview.cardFrom(),
@@ -165,10 +155,7 @@ public class TransferService {
     }
 
     @Transactional
-    public TransferResponseDto checkAndCreatePhoneTransfer(
-            PhoneTransferRequestDto phoneTransfer,
-            UUID clientId
-    ) {
+    public TransferResponseDto checkAndCreatePhoneTransfer(PhoneTransferRequestDto phoneTransfer, UUID clientId) {
         CardResponseDto cardTo = resolvePhoneRecipientCard(
                 phoneTransfer.phone(),
                 phoneTransfer.cardFrom(),
@@ -188,7 +175,11 @@ public class TransferService {
     @Transactional
     public void completeTransfer(TransferEventDto event) {
         Transfer transfer = transferRepository.findByIdForUpdate(event.getId())
-                .orElseThrow(() -> new IllegalStateException("Перевод не найден: " + event.getId()));
+                .orElseThrow(() -> new TransferException(
+                        INTERNAL_SERVER_ERROR,
+                        ErrorCode.TRANSFER_NOT_FOUND,
+                        event.getId()
+                ));
 
         if (transfer.getStatus() != IN_PROGRESS) {
             log.info("Перевод {} уже обработан со статусом {}", transfer.getId(), transfer.getStatus());
@@ -197,16 +188,16 @@ public class TransferService {
 
         Optional<CardResponseDto> cardTo = cardRepository.findByNumber(transfer.getCardTo());
         if (cardTo.isEmpty() || cardTo.get().status() != Status.ACTIVE) {
-            failTransfer(transfer, "Карта получателя недоступна");
+            failTransfer(transfer, ErrorCode.CARD_RECIPIENT_UNAVAILABLE.name());
             return;
         }
 
         Optional<Account> accountTo = accountRepository.findByIdForUpdate(cardTo.get().accountId());
         if (accountTo.isEmpty()
-                || accountTo.get().getStatus() != AccountStatus.ACTIVE
+                || accountTo.get().getStatus() != Status.ACTIVE
                 || accountTo.get().getCurrency() != transfer.getTargetCurrency()
                 || !Objects.equals(accountTo.get().getClientId(), transfer.getToClientId())) {
-            failTransfer(transfer, "Счет получателя недоступен или данные перевода изменились");
+            failTransfer(transfer, ACCOUNT_RECIPIENT_UNAVAILABLE.name());
             return;
         }
 
@@ -217,9 +208,15 @@ public class TransferService {
 
     private void failTransfer(Transfer transfer, String reason) {
         CardResponseDto cardFrom = cardRepository.findByNumber(transfer.getCardFrom())
-                .orElseThrow(() -> new IllegalStateException("Карта отправителя не найдена для возврата"));
+                .orElseThrow(() -> new TransferException(
+                        INTERNAL_SERVER_ERROR,
+                        ErrorCode.TRANSFER_REFUND_SENDER_CARD_NOT_FOUND
+                ));
         Account accountFrom = accountRepository.findByIdForUpdate(cardFrom.accountId())
-                .orElseThrow(() -> new IllegalStateException("Счет отправителя не найден для возврата"));
+                .orElseThrow(() -> new TransferException(
+                        INTERNAL_SERVER_ERROR,
+                        ErrorCode.TRANSFER_REFUND_SENDER_ACCOUNT_NOT_FOUND
+                ));
 
         BigDecimal refundAmount = transfer.getDebitAmount() != null
                 ? transfer.getDebitAmount()
@@ -229,24 +226,24 @@ public class TransferService {
         log.error("Перевод {} отклонен: {}", transfer.getId(), reason);
     }
 
-    private CardResponseDto findCard(String cardNumber, String message) {
+    private CardResponseDto findCard(String cardNumber, ErrorCode errorCode) {
         return cardRepository.findByNumber(cardNumber)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, message));
+                .orElseThrow(() -> new TransferException(NOT_FOUND, errorCode, cardNumber));
     }
 
-    private void validateActiveCard(CardResponseDto card, String message) {
+    private void validateActiveCard(CardResponseDto card, ErrorCode errorCode) {
         if (card.status() != Status.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, message);
+            throw new TransferException(CONFLICT, errorCode);
         }
     }
 
     private void validateAccount(Account account, CardResponseDto card) {
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Счет закрыт");
+        if (account.getStatus() != Status.ACTIVE) {
+            throw new TransferException(CONFLICT, ErrorCode.ACCOUNT_CLOSED);
         }
         if (!Objects.equals(account.getClientId(), card.clientId())
                 || account.getCurrency() != card.currency()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Данные карты не соответствуют счету");
+            throw new TransferException(CONFLICT, ErrorCode.CARD_ACCOUNT_MISMATCH);
         }
     }
 
@@ -255,25 +252,26 @@ public class TransferService {
             String cardFromNumber,
             UUID clientId
     ) {
-        CardResponseDto cardFrom = findCard(cardFromNumber, "Карта отправителя не найдена");
+        CardResponseDto cardFrom = findCard(cardFromNumber, ErrorCode.CARD_SENDER_NOT_FOUND);
         if (!Objects.equals(cardFrom.clientId(), clientId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Карта отправителя не принадлежит текущему клиенту");
+            throw new TransferException(FORBIDDEN, ErrorCode.CARD_SENDER_NOT_OWNED);
         }
-        validateActiveCard(cardFrom, "Карта отправителя недоступна для перевода");
+        validateActiveCard(cardFrom, ErrorCode.CARD_SENDER_UNAVAILABLE);
         if (cardFrom.currency() != RUB) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Перевод по номеру телефона доступен только с рублевой карты"
-            );
+            throw new TransferException(BAD_REQUEST, ErrorCode.TRANSFER_PHONE_RUB_ONLY);
         }
 
         Client recipient = clientRepository.findByPhone(phone)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Получатель с таким номером телефона не найден"));
+                .orElseThrow(() -> new TransferException(
+                        NOT_FOUND,
+                        ErrorCode.TRANSFER_RECIPIENT_PHONE_NOT_FOUND,
+                        phone
+                ));
         if (recipient.getStatus() == Status.BLOCKED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Получатель заблокирован");
+            throw new TransferException(CONFLICT, ErrorCode.TRANSFER_RECIPIENT_BLOCKED);
         }
         if (recipient.getStatus() != Status.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Получатель недоступен для перевода");
+            throw new TransferException(CONFLICT, ErrorCode.TRANSFER_RECIPIENT_UNAVAILABLE);
         }
 
         List<CardResponseDto> recipientCards = cardRepository.findCardsWithBalanceByClientId(recipient.getId());
@@ -283,9 +281,9 @@ public class TransferService {
                 .filter(card -> !Objects.equals(card.accountId(), cardFrom.accountId()))
                 .sorted(Comparator.comparing(CardResponseDto::cardNumber))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "У получателя нет доступной рублевой карты для перевода"
+                .orElseThrow(() -> new TransferException(
+                        CONFLICT,
+                        ErrorCode.TRANSFER_RECIPIENT_RUB_CARD_UNAVAILABLE
                 ));
     }
 
@@ -297,28 +295,36 @@ public class TransferService {
             boolean lockSourceAccount
     ) {
         if (Objects.equals(cardFromNumber, cardToNumber)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Нельзя выполнить перевод на ту же карту");
+            throw new TransferException(BAD_REQUEST, ErrorCode.TRANSFER_SAME_CARD);
         }
 
-        CardResponseDto cardFrom = findCard(cardFromNumber, "Карта отправителя не найдена");
-        CardResponseDto cardTo = findCard(cardToNumber, "Карта получателя не найдена");
+        CardResponseDto cardFrom = findCard(cardFromNumber, ErrorCode.CARD_SENDER_NOT_FOUND);
+        CardResponseDto cardTo = findCard(cardToNumber, ErrorCode.CARD_RECIPIENT_NOT_FOUND);
 
         if (!Objects.equals(cardFrom.clientId(), clientId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Карта отправителя не принадлежит текущему клиенту");
+            throw new TransferException(FORBIDDEN, ErrorCode.CARD_SENDER_NOT_OWNED);
         }
-        validateActiveCard(cardFrom, "Карта отправителя недоступна для перевода");
-        validateActiveCard(cardTo, "Карта получателя недоступна для перевода");
+        validateActiveCard(cardFrom, ErrorCode.CARD_SENDER_UNAVAILABLE);
+        validateActiveCard(cardTo, ErrorCode.CARD_RECIPIENT_UNAVAILABLE);
 
         if (Objects.equals(cardFrom.accountId(), cardTo.accountId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Нельзя выполнить перевод внутри одного счета");
+            throw new TransferException(BAD_REQUEST, ErrorCode.TRANSFER_SAME_ACCOUNT);
         }
 
         Account accountFrom = (lockSourceAccount
                 ? accountRepository.findByIdForUpdate(cardFrom.accountId())
                 : accountRepository.findById(cardFrom.accountId()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Счет отправителя не найден"));
+                .orElseThrow(() -> new TransferException(
+                        NOT_FOUND,
+                        ErrorCode.ACCOUNT_NOT_FOUND,
+                        cardFrom.accountId()
+                ));
         Account accountTo = accountRepository.findById(cardTo.accountId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Счет получателя не найден"));
+                .orElseThrow(() -> new TransferException(
+                        NOT_FOUND,
+                        ErrorCode.ACCOUNT_NOT_FOUND,
+                        cardTo.accountId()
+                ));
 
         validateAccount(accountFrom, cardFrom);
         validateAccount(accountTo, cardTo);
@@ -328,13 +334,17 @@ public class TransferService {
                 accountTo.getCurrency()
         );
         if (accountFrom.getBalance().compareTo(calculation.debitAmount()) < 0) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Недостаточно средств");
+            throw new TransferException(CONFLICT, ErrorCode.ACCOUNT_INSUFFICIENT_FUNDS);
         }
 
         Client recipient = clientRepository.findById(cardTo.clientId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Получатель не найден"));
+                .orElseThrow(() -> new TransferException(
+                        NOT_FOUND,
+                        ErrorCode.TRANSFER_RECIPIENT_NOT_FOUND,
+                        cardTo.clientId()
+                ));
         if (recipient.getStatus() != Status.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Получатель недоступен для перевода");
+            throw new TransferException(CONFLICT, ErrorCode.TRANSFER_RECIPIENT_UNAVAILABLE);
         }
         String recipientName = (
                 Objects.toString(recipient.getFirstName(), "")
@@ -342,7 +352,7 @@ public class TransferService {
                         + Objects.toString(recipient.getLastName(), "")
         ).trim();
         if (recipientName.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "У получателя не заполнены имя и фамилия");
+            throw new TransferException(CONFLICT, ErrorCode.TRANSFER_RECIPIENT_NAME_MISSING);
         }
 
         return new TransferContext(
@@ -400,31 +410,6 @@ public class TransferService {
             BigDecimal commission,
             BigDecimal debitAmount
     ) {
-    }
-
-    @Transactional
-    public TransferResponseDto create(TransferRequestDto transferDto) {
-        return Optional.of(transferDto)
-                .map(transferCreateMapper::toEntity)
-                .map(transferRepository::save)
-                .map(transferReadMapper::toEntity)
-                .orElseThrow();
-    }
-
-    @Transactional
-    public boolean delete(UUID id) {
-        return transferRepository.findById(id)
-                .map(entity -> {
-                    transferRepository.delete(entity);
-                    transferRepository.flush();
-                    return true;
-                })
-                .orElse(false);
-    }
-
-    public Page<TransferResponseDto> findAllByClientByFilter(TransferFilterDto filter, Pageable pageable, UUID clientId) {
-        return transferRepository.findAllByClientByFilter(filter, pageable, clientId)
-                .map(transferReadMapper::toEntity);
     }
 
     public Page<TransferHistoryResponseDto> findHistoryByClient(
@@ -519,28 +504,9 @@ public class TransferService {
         );
     }
 
-    public Page<TransferResponseDto> findAllByFilter(TransferFilterDto filter, Pageable pageable) {
-        return transferRepository.findAllByFilter(filter, pageable)
-                .map(transferReadMapper::toEntity);
-    }
-
-    public Optional<TransferResponseDto> findById(UUID id) {
-        return transferRepository.findById(id)
-                .map(transferReadMapper::toEntity);
-    }
-
     public Optional<TransferResponseDto> findByIdAndClientId(UUID id, UUID clientId) {
         return transferRepository.findByIdAndFromClientId(id, clientId)
                 .map(transferReadMapper::toEntity);
-    }
-
-    public void updateTransferStatus(UUID id, Status status) {
-        transferRepository.findById(id)
-                .ifPresent(transfer -> {
-                    transfer.setStatus(status);
-                    transferRepository.save(transfer);
-                    log.info("Статус перевода {} обновлен на {}", id, status);
-                });
     }
 
 }

@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public interface FilterReplenishmentRepository {
 
-    Page<Replenishment> findAllByFilter(ReplenishmentFilterDto filterDto, Pageable pageable);
+//    Page<Replenishment> findAllByFilter(ReplenishmentFilterDto filterDto, Pageable pageable);
 
-    Page<Replenishment> findAllByClientByFilter(ReplenishmentFilterDto filterDto, Pageable pageable, UUID clientId);
+//    Page<Replenishment> findAllByClientByFilter(ReplenishmentFilterDto filterDto, Pageable pageable, UUID clientId);
 
 }

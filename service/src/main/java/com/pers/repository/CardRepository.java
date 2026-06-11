@@ -16,7 +16,7 @@ public interface CardRepository extends JpaRepository<Card, UUID>,
         FilterCardRepository,
         QuerydslPredicateExecutor<Card> {
 
-    List<Card> findByClientId(UUID clientId);
+//    List<Card> findByClientId(UUID clientId);
 
     List<Card> findAllByAccountId(UUID accountId);
 

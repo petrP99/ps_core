@@ -1,7 +1,7 @@
 package com.pers.dto.response;
 
+import com.pers.enums.Status;
 import com.pers.enums.Currency;
-import com.pers.enums.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -13,7 +13,7 @@ public record AccountResponseDto(
         Currency currency,
         String name,
         Integer cashback,
-        AccountStatus status,
+        Status status,
         List<CardResponseDto> cards
 ) {
 }

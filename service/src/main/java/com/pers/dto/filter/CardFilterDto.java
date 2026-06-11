@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Builder
 public record CardFilterDto(
-        Long id,
+        UUID id,
         UUID clientId,
         UUID accountId,
         BigDecimal balance,

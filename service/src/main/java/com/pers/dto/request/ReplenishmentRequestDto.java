@@ -12,6 +12,7 @@ public record ReplenishmentRequestDto(
         @Positive
         @Digits(integer = 17, fraction = 2)
         BigDecimal amount,
+
         @NotNull
         UUID accountId
 ) {

@@ -1,15 +1,17 @@
 package com.pers.http.rest;
 
-import com.pers.dto.response.CardResponseDto;
-import com.pers.dto.response.TransferPreviewResponseDto;
-import com.pers.dto.response.TransferHistoryResponseDto;
-import com.pers.dto.response.TransferResponseDto;
+import com.pers.dto.filter.PageResponse;
+import com.pers.dto.filter.TransferFilterDto;
 import com.pers.dto.request.PhoneTransferPreviewRequestDto;
 import com.pers.dto.request.PhoneTransferRequestDto;
 import com.pers.dto.request.TransferPreviewRequestDto;
 import com.pers.dto.request.TransferRequestDto;
-import com.pers.dto.filter.PageResponse;
-import com.pers.dto.filter.TransferFilterDto;
+import com.pers.dto.response.CardResponseDto;
+import com.pers.dto.response.TransferHistoryResponseDto;
+import com.pers.dto.response.TransferPreviewResponseDto;
+import com.pers.dto.response.TransferResponseDto;
+import com.pers.exception.TransferException;
+import com.pers.exception.ErrorCode;
 import com.pers.http.config.CurrentClientId;
 import com.pers.service.CardService;
 import com.pers.service.TransferService;
@@ -17,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -86,9 +87,10 @@ public class TransferRestController {
     ) {
         return transferService.findByIdAndClientId(id, clientId)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                .orElseThrow(() -> new TransferException(
                         NOT_FOUND,
-                        "Перевод не найден"
+                        ErrorCode.TRANSFER_NOT_FOUND,
+                        id
                 ));
     }
 
@@ -108,19 +110,11 @@ public class TransferRestController {
     ) {
         return transferService.findHistoryByIdAndClientId(id, clientId)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                .orElseThrow(() -> new TransferException(
                         NOT_FOUND,
-                        "Перевод не найден"
+                        ErrorCode.TRANSFER_NOT_FOUND,
+                        id
                 ));
     }
 
-    /**
-     * Methods for the Admins
-     */
-
-    @GetMapping("/findAll")
-    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
-    public PageResponse<TransferResponseDto> allTransfers(TransferFilterDto filter, Pageable pageable) {
-        return PageResponse.of(transferService.findAllByFilter(filter, pageable));
-    }
 }

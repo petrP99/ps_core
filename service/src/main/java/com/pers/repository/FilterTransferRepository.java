@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public interface FilterTransferRepository {
 
-    Page<Transfer> findAllByFilter(TransferFilterDto filterDto, Pageable pageable);
-
-    Page<Transfer> findAllByClientByFilter(TransferFilterDto filterDto, Pageable pageable, UUID clientId);
-
+//    Page<Transfer> findAllByFilter(TransferFilterDto filterDto, Pageable pageable);
+//
+//    Page<Transfer> findAllByClientByFilter(TransferFilterDto filterDto, Pageable pageable, UUID clientId);
+//
 }

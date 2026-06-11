@@ -17,7 +17,6 @@ public class ClientReadMapper implements Mapper<Client, ClientResponseDto> {
     public ClientResponseDto mapFrom(Client object, BigDecimal balance) {
         return new ClientResponseDto(
                 object.getId(),
-                object.getRole(),
                 balance,
                 object.getFirstName(),
                 object.getLastName(),

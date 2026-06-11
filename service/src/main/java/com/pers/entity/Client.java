@@ -1,6 +1,5 @@
 package com.pers.entity;
 
-import com.pers.enums.Role;
 import com.pers.enums.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +17,9 @@ import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Клиент.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,17 +29,36 @@ import java.util.UUID;
 @Entity
 public class Client implements BaseEntity<UUID> {
 
+    /**
+     * Уникальный идентификатор клиента.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /**
+     * Имя клиента.
+     */
     private String firstName;
+
+    /**
+     * Фамилия клиента.
+     */
     private String lastName;
+
+    /**
+     * Номер телефона клиента.
+     */
     private String phone;
+
+    /**
+     * Дата и время регистрации клиента.
+     */
     private LocalDateTime createdTime;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    /**
+     * Статус клиента.
+     */
     @Enumerated(EnumType.STRING)
     private Status status;
-
 }

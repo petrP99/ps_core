@@ -14,8 +14,8 @@ import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
 
-    @Query("SELECT COALESCE(SUM(a.balance), 0) FROM Account a WHERE a.clientId = :clientId")
-    BigDecimal getTotalBalanceByClientId(@Param("clientId") UUID clientId);
+//    @Query("SELECT COALESCE(SUM(a.balance), 0) FROM Account a WHERE a.clientId = :clientId")
+//    BigDecimal getTotalBalanceByClientId(@Param("clientId") UUID clientId);
 
     List<Account> findAllByClientId(UUID clientId);
 

@@ -5,8 +5,6 @@ import com.pers.validation.ReplenishmentInfo;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import static org.springframework.util.StringUtils.hasText;
-
 public class ReplenishmentInfoValidator implements ConstraintValidator<ReplenishmentInfo, ReplenishmentRequestDto> {
     @Override
     public boolean isValid(ReplenishmentRequestDto value, ConstraintValidatorContext context) {

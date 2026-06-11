@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface FilterPaymentRepository {
 
-    Page<Payment> findAllByFilter(PaymentFilterDto filterDto, Pageable pageable);
+//    Page<Payment> findAllByFilter(PaymentFilterDto filterDto, Pageable pageable);
 
     Page<Payment> findAllByClientByFilter(PaymentFilterDto filterDto, Pageable pageable, UUID clientId);
 

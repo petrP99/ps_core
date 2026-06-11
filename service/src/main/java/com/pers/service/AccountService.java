@@ -3,8 +3,8 @@ package com.pers.service;
 import com.pers.dto.request.AccountRequestDto;
 import com.pers.dto.response.AccountResponseDto;
 import com.pers.entity.Account;
-import com.pers.enums.Operation;
 import com.pers.mapper.AccountCreateMapper;
+import com.pers.mapper.AccountReadMapper;
 import com.pers.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountCreateMapper accountCreateMapper;
+    private final AccountReadMapper accountReadMapper;
     private final CardService cardService;
     private final CurrencyService currencyService;
 
@@ -43,16 +44,7 @@ public class AccountService {
                 .map(this::toDto)
                 .toList();
     }
-
-
-    public BigDecimal getBalanceById(UUID id) {
-        return accountRepository.findById(id)
-                .map(this::toDto)
-                .map(AccountResponseDto::balance)
-                .orElse(BigDecimal.ZERO);
-    }
-
-
+    
     public BigDecimal getClientTotalBalance(UUID clientId) {
         return accountRepository.findAllByClientId(clientId).stream()
                 .collect(Collectors.toMap(
@@ -70,28 +62,6 @@ public class AccountService {
 
     private AccountResponseDto toDto(Account account) {
         var cards = cardService.findByAccountId(account.getId());
-        return new AccountResponseDto(
-                account.getId(),
-                account.getBalance(),
-                account.getCurrency(),
-                account.getName(),
-                account.getCashback(),
-                account.getStatus(),
-                cards
-        );
-    }
-
-    public void changeBalance(UUID accountId, BigDecimal amount, Operation operation) {
-        accountRepository.findById(accountId).ifPresent(
-                account -> {
-                    BigDecimal balance = account.getBalance();
-                    if (operation.equals(Operation.SUBTRACT)) {
-                        balance = balance.subtract(amount);
-                    } else {
-                        balance = balance.add(amount);
-                    }
-                    account.setBalance(balance);
-                    accountRepository.save(account);
-                });
+        return accountReadMapper.toDto(account, cards);
     }
 }

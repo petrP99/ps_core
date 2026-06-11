@@ -22,7 +22,7 @@ public class FilterReplenishmentRepositoryImpl implements FilterReplenishmentRep
 
     private final EntityManager entityManager;
 
-    @Override
+//    @Override
     public Page<Replenishment> findAllByFilter(ReplenishmentFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), replenishment.id::eq)
@@ -41,12 +41,12 @@ public class FilterReplenishmentRepositoryImpl implements FilterReplenishmentRep
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
     }
 
-    @Override
+//    @Override
     public Page<Replenishment> findAllByClientByFilter(ReplenishmentFilterDto filter, Pageable pageable, UUID clientId) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), replenishment.id::eq)
@@ -66,10 +66,8 @@ public class FilterReplenishmentRepositoryImpl implements FilterReplenishmentRep
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
     }
-
-
 }

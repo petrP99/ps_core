@@ -26,7 +26,7 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, UUID> 
     @Modifying
     @Query("""
             DELETE FROM OutboxEvent e
-            WHERE e.status = com.pers.enums.OutboxEventStatus.PUBLISHED
+            WHERE e.status = com.pers.enums.OutboxEventType.PUBLISHED
               AND e.publishedAt < :cutoff
             """)
     int deletePublishedBefore(@Param("cutoff") LocalDateTime cutoff);

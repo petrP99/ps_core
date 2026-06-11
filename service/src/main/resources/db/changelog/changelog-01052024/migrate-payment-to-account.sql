@@ -4,13 +4,13 @@
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'payment' AND column_name = 'card_no'
 ALTER TABLE payment
-    ADD COLUMN account_id UUID,
+    ADD COLUMN account_id          UUID,
     ADD COLUMN payment_destination VARCHAR(255);
 
 UPDATE payment payment_record
-SET account_id = card_record.account_id,
+SET account_id          = card_record.account_id,
     payment_destination = payment_record.shop_name,
-    recipient = COALESCE(payment_record.recipient, 'MOBILE_PHONE')
+    recipient           = COALESCE(payment_record.recipient, 'MOBILE_PHONE')
 FROM card card_record
 WHERE payment_record.card_no = card_record.card_number;
 

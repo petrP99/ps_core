@@ -19,6 +19,9 @@ import lombok.ToString;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * Банковская карта клиента.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,28 +31,55 @@ import java.util.UUID;
 @Entity
 public class Card implements BaseEntity<UUID> {
 
+    /**
+     * Уникальный идентификатор карты.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /**
+     * Номер карты.
+     */
     @Column(name = "card_number", unique = true, length = 16)
     private String cardNumber;
 
+    /**
+     * Идентификатор клиента-владельца карты.
+     */
     @Column(name = "client_id")
     private UUID clientId;
 
+    /**
+     * Идентификатор счёта, к которому привязана карта.
+     */
     @Column(name = "account_id")
     private UUID accountId;
 
+    /**
+     * Дата создания карты.
+     */
     private LocalDate createdDate;
 
+    /**
+     * Дата истечения срока действия карты.
+     */
     private LocalDate expireDate;
 
+    /**
+     * Наименование карты.
+     */
     private String name;
 
+    /**
+     * Валюта карты.
+     */
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
+    /**
+     * Статус карты.
+     */
     @Enumerated(EnumType.STRING)
     private Status status;
 }

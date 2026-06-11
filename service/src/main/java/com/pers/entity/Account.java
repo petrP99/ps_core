@@ -1,7 +1,7 @@
 package com.pers.entity;
 
 import com.pers.enums.Currency;
-import com.pers.enums.AccountStatus;
+import com.pers.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,6 +19,9 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Банковский счёт клиента.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,27 +31,48 @@ import java.util.UUID;
 @Entity
 public class Account implements BaseEntity<UUID> {
 
+    /**
+     * Уникальный идентификатор счёта.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /**
+     * Текущий баланс счёта.
+     */
     @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal balance;
 
+    /**
+     * Валюта счёта.
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Currency currency;
 
+    /**
+     * Идентификатор клиента-владельца счёта.
+     */
     @Column(name = "client_id", nullable = false)
     private UUID clientId;
 
+    /**
+     * Наименование счёта.
+     */
     @Column(nullable = false)
     private String name;
 
+    /**
+     * Кэшбэк в процентах.
+     */
     @Column(nullable = true)
     private Integer cashback;
 
+    /**
+     * Статус счёта.
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AccountStatus status;
+    private Status status;
 }

@@ -4,8 +4,10 @@ import com.pers.dto.filter.PaymentFilterDto;
 import com.pers.entity.Payment;
 import com.pers.repository.FilterPaymentRepository;
 import com.pers.repository.predicate.QPredicate;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.EntityManager;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,7 +23,7 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
 
     private final EntityManager entityManager;
 
-    @Override
+//    @Override
     public Page<Payment> findAllByFilter(PaymentFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), payment.id::eq)
@@ -33,18 +35,7 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 
-        var query = new JPAQuery<Payment>(entityManager)
-                .select(payment)
-                .from(payment)
-                .where(predicate);
-
-        List<Payment> content = query.offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long totalCount = query.fetchCount();
-
-        return new PageImpl<>(content, pageable, totalCount);
+        return getPayments(pageable, predicate);
     }
 
     @Override
@@ -59,6 +50,11 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
                 .add(filter.status(), payment.status::eq)
                 .buildAnd();
 
+        return getPayments(pageable, predicate);
+    }
+
+    @NotNull
+    private Page<Payment> getPayments(Pageable pageable, Predicate predicate) {
         var query = new JPAQuery<Payment>(entityManager)
                 .select(payment)
                 .from(payment)
@@ -68,7 +64,7 @@ public class FilterPaymentRepositoryImpl implements FilterPaymentRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
     }

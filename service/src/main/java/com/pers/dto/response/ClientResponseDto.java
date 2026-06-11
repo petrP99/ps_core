@@ -1,6 +1,5 @@
 package com.pers.dto.response;
 
-import com.pers.enums.Role;
 import com.pers.enums.Status;
 import lombok.Value;
 
@@ -12,7 +11,6 @@ import java.util.UUID;
 public class ClientResponseDto {
 
     UUID id;
-    Role role;
     BigDecimal balance;
     String firstName;
     String lastName;

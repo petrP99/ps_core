@@ -15,3 +15,5 @@ databaseChangeLog:
       file: db/changelog/changelog-01052024/migrate-replenishment-to-account.sql
   - include:
       file: db/changelog/changelog-01052024/migrate-payment-to-account.sql
+  - include:
+      file: db/changelog/changelog-01052024/remove-client-role.sql

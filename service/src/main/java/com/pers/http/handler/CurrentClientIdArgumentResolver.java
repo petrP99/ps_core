@@ -1,5 +1,7 @@
 package com.pers.http.handler;
 
+import com.pers.exception.BusinessException;
+import com.pers.exception.ErrorCode;
 import com.pers.http.config.CurrentClientId;
 import com.pers.service.ClientService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 @Component
 @RequiredArgsConstructor
 public class CurrentClientIdArgumentResolver implements HandlerMethodArgumentResolver {
@@ -31,14 +35,16 @@ public class CurrentClientIdArgumentResolver implements HandlerMethodArgumentRes
 
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
         Map<String, Object> clientIdClaim = switch (principal) {
             case Jwt jwt -> jwt.getClaims();
             case OidcUser oidcUser -> oidcUser.getClaims();
             case OAuth2User oauth2User -> oauth2User.getAttributes();
-            default -> throw new IllegalStateException("Unexpected principal type: " + principal);
+            default -> throw new BusinessException(
+                    INTERNAL_SERVER_ERROR,
+                    ErrorCode.AUTH_PRINCIPAL_UNSUPPORTED
+            );
         };
         return clientService.getIdFromSuccessAuth(clientIdClaim);
     }

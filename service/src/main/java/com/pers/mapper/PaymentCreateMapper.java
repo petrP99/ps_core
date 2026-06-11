@@ -11,7 +11,7 @@ import java.util.UUID;
 @Component
 public class PaymentCreateMapper {
 
-    public Payment mapFrom(PaymentRequestDto object, UUID clientId, Status status) {
+    public Payment toEntity(PaymentRequestDto object, UUID clientId, Status status) {
         return Payment.builder()
                 .paymentDestination(object.paymentDestination())
                 .amount(object.amount())

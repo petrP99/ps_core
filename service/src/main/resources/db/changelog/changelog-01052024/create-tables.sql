@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS client
     last_name    VARCHAR(128) NOT NULL,
     phone        VARCHAR(20)  NOT NULL,
     created_time TIMESTAMP    NOT NULL,
-    role         VARCHAR(20)  NOT NULL,
     status       VARCHAR(56)  NOT NULL
 );
 --rollback DROP TABLE client;

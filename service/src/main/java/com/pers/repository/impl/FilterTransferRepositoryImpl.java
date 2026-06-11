@@ -22,14 +22,14 @@ public class FilterTransferRepositoryImpl implements FilterTransferRepository {
 
     private final EntityManager entityManager;
 
-    @Override
+//    @Override
     public Page<Transfer> findAllByFilter(TransferFilterDto filter, Pageable pageable) {
         var predicate = QPredicate.builder()
                 .add(filter.id(), transfer.id::eq)
-//                .add(filter.fromClientId(), transfer.fromClientId::eq)
-//                .add(filter.toClientId(), transfer.toClientId::eq)
-//                .add(filter.cardNoFrom(), transfer.cardNoFrom::eq)
-//                .add(filter.cardNoTo(), transfer.cardNoTo::eq)
+                .add(filter.fromClientId(), transfer.fromClientId::eq)
+                .add(filter.toClientId(), transfer.toClientId::eq)
+                .add(filter.cardNoFrom(), transfer.cardFrom::eq)
+                .add(filter.cardNoTo(), transfer.cardTo::eq)
                 .add(filter.amount(), transfer.amount::eq)
                 .add(filter.message(), transfer.message::containsIgnoreCase)
                 .add(filter.recipient(), transfer.recipient::containsIgnoreCase)
@@ -45,17 +45,17 @@ public class FilterTransferRepositoryImpl implements FilterTransferRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
     }
 
-    @Override
+//    @Override
     public Page<Transfer> findAllByClientByFilter(TransferFilterDto filter, Pageable pageable, UUID clientId) {
         var filterPredicate = QPredicate.builder()
                 .add(filter.id(), transfer.id::eq)
-//                .add(filter.cardNoFrom(), transfer.cardIdFrom::eq)
-//                .add(filter.cardNoTo(), transfer.cardIdTo::eq)
+                .add(filter.cardNoFrom(), transfer.cardFrom::eq)
+                .add(filter.cardNoTo(), transfer.cardTo::eq)
                 .add(filter.amount(), transfer.amount::eq)
                 .add(filter.message(), transfer.message::containsIgnoreCase)
                 .add(filter.recipient(), transfer.recipient::containsIgnoreCase)
@@ -75,7 +75,7 @@ public class FilterTransferRepositoryImpl implements FilterTransferRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long totalCount = query.fetchCount();
+        long totalCount = query.stream().count();
 
         return new PageImpl<>(content, pageable, totalCount);
     }
