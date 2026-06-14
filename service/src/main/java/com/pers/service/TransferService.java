@@ -13,6 +13,7 @@ import com.pers.entity.Account;
 import com.pers.entity.AccountTransfer;
 import com.pers.entity.Client;
 import com.pers.entity.Transfer;
+import com.pers.enums.Currency;
 import com.pers.enums.Status;
 import com.pers.exception.ErrorCode;
 import com.pers.exception.TransferException;
@@ -59,6 +60,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Slf4j
 public class TransferService {
 
+    public static final String CARD = "CARD";
+    public static final String BETWEEN_OWN_ACCOUNTS = "Между своими счетами";
     private final TransferRepository transferRepository;
     private final TransferReadMapper transferReadMapper;
     private final TransferCreateMapper transferCreateMapper;
@@ -69,7 +72,7 @@ public class TransferService {
     private final CurrencyService currencyService;
     private final OutboxService outboxService;
 
-    @Value("${value.comission}")
+    @Value("${value.commission}")
     private BigDecimal commissionPercent;
 
     @Transactional
@@ -246,11 +249,7 @@ public class TransferService {
         }
     }
 
-    private CardResponseDto resolvePhoneRecipientCard(
-            String phone,
-            String cardFromNumber,
-            UUID clientId
-    ) {
+    private CardResponseDto resolvePhoneRecipientCard(String phone, String cardFromNumber, UUID clientId) {
         CardResponseDto cardFrom = findCard(cardFromNumber, ErrorCode.CARD_SENDER_NOT_FOUND);
         if (!Objects.equals(cardFrom.clientId(), clientId)) {
             throw new TransferException(FORBIDDEN, ErrorCode.CARD_SENDER_NOT_OWNED);
@@ -286,12 +285,11 @@ public class TransferService {
                 ));
     }
 
-    private TransferContext validateTransfer(
-            String cardFromNumber,
-            String cardToNumber,
-            BigDecimal amount,
-            UUID clientId,
-            boolean lockSourceAccount
+    private TransferContext validateTransfer(String cardFromNumber,
+                                             String cardToNumber,
+                                             BigDecimal amount,
+                                             UUID clientId,
+                                             boolean lockSourceAccount
     ) {
         if (Objects.equals(cardFromNumber, cardToNumber)) {
             throw new TransferException(BAD_REQUEST, ErrorCode.TRANSFER_SAME_CARD);
@@ -364,22 +362,16 @@ public class TransferService {
         );
     }
 
-    private TransferCalculation calculateTransfer(
-            BigDecimal amount,
-            com.pers.enums.Currency sourceCurrency,
-            com.pers.enums.Currency targetCurrency
-    ) {
-        CurrencyService.ConversionResult conversion = currencyService.convert(
-                amount,
-                sourceCurrency,
-                targetCurrency
-        );
+    // todo что тут происходит
+    private TransferCalculation calculateTransfer(BigDecimal amount,
+                                                  Currency sourceCurrency,
+                                                  Currency targetCurrency) {
+        CurrencyService.ConversionResult conversion = currencyService.convert(amount, sourceCurrency, targetCurrency);
         boolean isExchange = sourceCurrency != targetCurrency;
         BigDecimal appliedCommissionPercent = isExchange
                 ? commissionPercent
                 : BigDecimal.ZERO;
-        BigDecimal commission = amount
-                .multiply(appliedCommissionPercent)
+        BigDecimal commission = amount.multiply(appliedCommissionPercent)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal debitAmount = amount.add(commission).setScale(2, RoundingMode.HALF_UP);
 
@@ -398,8 +390,7 @@ public class TransferService {
             Account accountFrom,
             Account accountTo,
             String recipient,
-            TransferCalculation calculation
-    ) {
+            TransferCalculation calculation) {
     }
 
     private record TransferCalculation(
@@ -407,35 +398,29 @@ public class TransferService {
             BigDecimal exchangeRate,
             BigDecimal commissionPercent,
             BigDecimal commission,
-            BigDecimal debitAmount
-    ) {
+            BigDecimal debitAmount) {
     }
 
-    public Page<TransferHistoryResponseDto> findHistoryByClient(
-            Pageable pageable,
-            UUID clientId
-    ) {
+    public Page<TransferHistoryResponseDto> findHistoryByClient(Pageable pageable, UUID clientId) {
         List<TransferHistoryResponseDto> history = new ArrayList<>();
         transferRepository.findAllByParticipantOrderByTimeOfTransferDesc(clientId).stream()
                 .map(transfer -> toHistoryDto(transfer, clientId))
                 .forEach(history::add);
+
         accountTransferRepository.findAllByClientIdOrderByTimeOfTransferDesc(clientId).stream()
                 .map(this::toHistoryDto)
                 .forEach(history::add);
+
         history.sort(Comparator.comparing(
                 TransferHistoryResponseDto::timeOfTransfer,
-                Comparator.nullsLast(Comparator.reverseOrder())
-        ));
+                Comparator.nullsLast(Comparator.reverseOrder())));
 
         int start = Math.min((int) pageable.getOffset(), history.size());
         int end = Math.min(start + pageable.getPageSize(), history.size());
         return new PageImpl<>(history.subList(start, end), pageable, history.size());
     }
 
-    public Optional<TransferHistoryResponseDto> findHistoryByIdAndClientId(
-            UUID id,
-            UUID clientId
-    ) {
+    public Optional<TransferHistoryResponseDto> findHistoryByIdAndClientId(UUID id, UUID clientId) {
         Optional<TransferHistoryResponseDto> cardTransfer = transferRepository
                 .findByIdAndParticipant(id, clientId)
                 .map(transfer -> toHistoryDto(transfer, clientId));
@@ -468,7 +453,7 @@ public class TransferService {
                 transfer.getDebitAmount(),
                 transfer.getCurrency(),
                 transfer.getTargetCurrency(),
-                "CARD",
+                CARD,
                 null,
                 null,
                 null,
@@ -480,7 +465,7 @@ public class TransferService {
         return new TransferHistoryResponseDto(
                 transfer.getId(),
                 false,
-                "Между своими счетами",
+                BETWEEN_OWN_ACCOUNTS,
                 null,
                 null,
                 transfer.getAmount(),

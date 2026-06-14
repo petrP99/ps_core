@@ -101,10 +101,7 @@ public class CurrencyService {
                                 currencyProperties.targetCurrencies().stream()
                         )
                         .distinct()
-                        .map(currency -> new CurrencyRateResponseDto(
-                                currency,
-                                getRateFromCache(currency)
-                        ))
+                        .map(currency -> new CurrencyRateResponseDto(currency, getRateFromCache(currency)))
                         .toList()
         );
     }

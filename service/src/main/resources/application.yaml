@@ -64,7 +64,7 @@ spring:
           security: TRACE
 
 value:
-  comission: 0.5
+  commission: 0.5
   exchangeRate:
     url: https://v6.exchangerate-api.com/v6/19c0929c9d29445d4cc474aa/latest/RUB
 
