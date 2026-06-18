@@ -1,12 +1,14 @@
 package com.pers.kafka;
 
 import com.pers.dto.event.AccountCloseEvent;
-import com.pers.dto.request.TransferEventDto;
+import com.pers.dto.event.BalanceOperationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -15,19 +17,27 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${spring.kafka.topics.transfer-create}")
-    private String transferCreateTopic;
-
     @Value("${spring.kafka.topics.account-close}")
     private String accountCloseTopic;
 
-    public void sendTransferCreateEvent(String eventKey, TransferEventDto dto) {
-        kafkaTemplate.send(transferCreateTopic, eventKey, dto);
-        log.info("Отправлено событие о переводе с transferId: {}", dto.getId());
-    }
+    @Value("${spring.kafka.topics.balance-operation-result}")
+    private String balanceOperationResultTopic;
 
     public void sendAccountCloseEvent(AccountCloseEvent event) {
         kafkaTemplate.send(accountCloseTopic, event.accountId().toString(), event);
         log.info("Отправлено событие по закрытию счете с accountId: {}", event.accountId());
+    }
+
+    public void sendBalanceOperationResult(BalanceOperationResult event) {
+        try {
+            kafkaTemplate.send(balanceOperationResultTopic, event.operationId().toString(), event)
+                    .get(5, TimeUnit.SECONDS);
+            log.info("Отправлен результат балансовой операции operationId={}", event.operationId());
+        } catch (Exception exception) {
+            throw new IllegalStateException(
+                    "Не удалось опубликовать результат operationId=" + event.operationId(),
+                    exception
+            );
+        }
     }
 }

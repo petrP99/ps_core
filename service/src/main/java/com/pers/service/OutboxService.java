@@ -2,7 +2,7 @@ package com.pers.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pers.dto.request.TransferEventDto;
+import com.pers.dto.event.BalanceOperationResult;
 import com.pers.enums.OutboxEventType;
 import com.pers.exception.BusinessException;
 import com.pers.exception.ErrorCode;
@@ -24,13 +24,13 @@ public class OutboxService {
     private final ObjectMapper objectMapper;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveTransferCreatedEvent(TransferEventDto event) {
+    public void saveBalanceOperationResult(BalanceOperationResult event) {
         LocalDateTime now = LocalDateTime.now();
 
         com.pers.entity.OutboxEvent outboxEvent = com.pers.entity.OutboxEvent.builder()
-                .aggregateId(event.getId())
-                .eventType(OutboxEventType.TRANSFER_CREATED)
-                .eventKey(event.getFromClientId().toString())
+                .aggregateId(event.operationId())
+                .eventType(OutboxEventType.BALANCE_OPERATION_RESULT)
+                .eventKey(event.operationId().toString())
                 .payload(writePayload(event))
                 .status(OutboxEventType.PENDING)
                 .attempts(0)
@@ -41,7 +41,7 @@ public class OutboxService {
         outboxEventRepository.save(outboxEvent);
     }
 
-    private String writePayload(TransferEventDto event) {
+    private String writePayload(BalanceOperationResult event) {
         try {
             return objectMapper.writeValueAsString(event);
         } catch (JsonProcessingException e) {

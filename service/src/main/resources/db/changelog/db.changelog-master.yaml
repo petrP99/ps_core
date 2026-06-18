@@ -3,17 +3,3 @@ databaseChangeLog:
       file: db/changelog/changelog-01052024/create-tables.sql
   - include:
       file: db/changelog/changelog-01052024/insert-data.sql
-  - include:
-      file: db/changelog/changelog-01052024/create-outbox-table.sql
-  - include:
-      file: db/changelog/changelog-01052024/add-transfer-exchange-fields.sql
-  - include:
-      file: db/changelog/changelog-01052024/add-transfer-phone.sql
-  - include:
-      file: db/changelog/changelog-01052024/create-account-transfer-table.sql
-  - include:
-      file: db/changelog/changelog-01052024/migrate-replenishment-to-account.sql
-  - include:
-      file: db/changelog/changelog-01052024/migrate-payment-to-account.sql
-  - include:
-      file: db/changelog/changelog-01052024/remove-client-role.sql

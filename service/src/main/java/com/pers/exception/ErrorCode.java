@@ -29,22 +29,20 @@ public enum ErrorCode {
 
     CLIENT_NOT_FOUND("client.not.found"),
 
-    TRANSFER_NOT_FOUND("transfer.not.found"),
-    TRANSFER_SAME_CARD("transfer.same.card"),
-    TRANSFER_SAME_ACCOUNT("transfer.same.account"),
-    TRANSFER_PHONE_RUB_ONLY("transfer.phone.rub.only"),
-    TRANSFER_RECIPIENT_PHONE_NOT_FOUND("transfer.recipient.phone.not.found"),
-    TRANSFER_RECIPIENT_NOT_FOUND("transfer.recipient.not.found"),
-    TRANSFER_RECIPIENT_BLOCKED("transfer.recipient.blocked"),
-    TRANSFER_RECIPIENT_UNAVAILABLE("transfer.recipient.unavailable"),
-    TRANSFER_RECIPIENT_RUB_CARD_UNAVAILABLE("transfer.recipient.rub.card.unavailable"),
-    TRANSFER_RECIPIENT_NAME_MISSING("transfer.recipient.name.missing"),
-    TRANSFER_REFUND_SENDER_CARD_NOT_FOUND("transfer.refund.sender.card.not.found"),
-    TRANSFER_REFUND_SENDER_ACCOUNT_NOT_FOUND("transfer.refund.sender.account.not.found"),
+    OPERATION_SAME_CARD("operation.same.card"),
+    OPERATION_SAME_ACCOUNT("operation.same.account"),
+    OPERATION_PHONE_RUB_ONLY("operation.phone.rub.only"),
+    OPERATION_RECIPIENT_PHONE_NOT_FOUND("operation.recipient.phone.not.found"),
+    OPERATION_RECIPIENT_NOT_FOUND("operation.recipient.not.found"),
+    OPERATION_RECIPIENT_BLOCKED("operation.recipient.blocked"),
+    OPERATION_RECIPIENT_UNAVAILABLE("operation.recipient.unavailable"),
+    OPERATION_RECIPIENT_RUB_CARD_UNAVAILABLE("operation.recipient.rub.card.unavailable"),
+    OPERATION_RECIPIENT_NAME_MISSING("operation.recipient.name.missing"),
 
     CURRENCY_RATE_NOT_FOUND("currency.rate.not.found"),
     OUTBOX_SERIALIZE_FAILED("outbox.serialize.failed"),
-    AUTH_PRINCIPAL_UNSUPPORTED("auth.principal.unsupported");
+    AUTH_PRINCIPAL_UNSUPPORTED("auth.principal.unsupported"),
+    INTERNAL_ACCESS_DENIED("internal.access.denied");
 
     private final String key;
 
@@ -53,4 +51,3 @@ public enum ErrorCode {
     }
 
 }
-

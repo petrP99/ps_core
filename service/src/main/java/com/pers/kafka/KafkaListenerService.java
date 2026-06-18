@@ -1,9 +1,9 @@
 package com.pers.kafka;
 
 import com.pers.dto.event.AccountCloseEvent;
-import com.pers.dto.request.TransferEventDto;
+import com.pers.dto.event.BalanceOperationCommand;
 import com.pers.service.AccountClosureService;
-import com.pers.service.TransferService;
+import com.pers.service.BalanceOperationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -14,14 +14,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class KafkaListenerService {
 
-    private final TransferService transferService;
+    private final BalanceOperationService balanceOperationService;
     private final AccountClosureService accountClosureService;
 
-    @KafkaListener(topics = "${spring.kafka.topics.transfer-create}", groupId = "${spring.kafka.consumer.group-id}")
-    public void listenTransferStatus(TransferEventDto transfer) throws InterruptedException {
-        log.info("Получено событие о переводе с transferId: {}", transfer.getId());
-//        Thread.sleep(5000); // todo
-        transferService.completeTransfer(transfer);
+    @KafkaListener(
+            topics = "${spring.kafka.topics.balance-operation-execute}",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void executeBalanceOperation(BalanceOperationCommand command) {
+        log.info("Получена команда балансовой операции operationId={}", command.operationId());
+        balanceOperationService.execute(command);
     }
 
     @KafkaListener(topics = "${spring.kafka.topics.account-close}", groupId = "${spring.kafka.consumer.group-id}")
@@ -31,4 +33,3 @@ public class KafkaListenerService {
     }
 
 }
-

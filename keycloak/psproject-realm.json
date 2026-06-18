@@ -820,7 +820,7 @@
       "redirectUris": [
         "http://localhost:8080/*",
         "http://localhost:5173/*",
-        "http://localhost:9090/*"
+        "http://localhost:9091/*"
       ],
       "webOrigins": [
         "http://localhost:8080"
@@ -838,7 +838,7 @@
       "attributes": {
         "oidc.ciba.grant.enabled": "false",
         "backchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "http://localhost:9090/*##http://localhost:5173/*",
+        "post.logout.redirect.uris": "http://localhost:9091/*##http://localhost:5173/*",
         "display.on.consent.screen": "false",
         "oauth2.device.authorization.grant.enabled": "false",
         "backchannel.logout.revoke.offline.tokens": "false"

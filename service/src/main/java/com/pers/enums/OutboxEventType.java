@@ -4,5 +4,5 @@ public enum OutboxEventType {
     PENDING,
     PUBLISHED,
     FAILED,
-    TRANSFER_CREATED
+    BALANCE_OPERATION_RESULT
 }

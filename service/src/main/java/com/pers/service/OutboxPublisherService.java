@@ -2,7 +2,7 @@ package com.pers.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pers.dto.request.TransferEventDto;
+import com.pers.dto.event.BalanceOperationResult;
 import com.pers.entity.OutboxEvent;
 import com.pers.enums.OutboxEventType;
 import com.pers.kafka.KafkaProducerService;
@@ -51,8 +51,9 @@ public class OutboxPublisherService {
 
     private void publish(com.pers.entity.OutboxEvent event) {
         try {
-            if (Objects.requireNonNull(event.getEventType()) == OutboxEventType.TRANSFER_CREATED) {
-                publishTransferCreated(event);
+            OutboxEventType eventType = Objects.requireNonNull(event.getEventType());
+            if (eventType == OutboxEventType.BALANCE_OPERATION_RESULT) {
+                publishBalanceOperationResult(event);
             }
             event.setStatus(OutboxEventType.PUBLISHED);
             event.setPublishedAt(LocalDateTime.now());
@@ -62,9 +63,12 @@ public class OutboxPublisherService {
         }
     }
 
-    private void publishTransferCreated(com.pers.entity.OutboxEvent event) throws JsonProcessingException {
-        TransferEventDto payload = objectMapper.readValue(event.getPayload(), TransferEventDto.class);
-        kafkaProducerService.sendTransferCreateEvent(event.getEventKey(), payload);
+    private void publishBalanceOperationResult(
+            com.pers.entity.OutboxEvent event
+    ) throws JsonProcessingException {
+        BalanceOperationResult payload =
+                objectMapper.readValue(event.getPayload(), BalanceOperationResult.class);
+        kafkaProducerService.sendBalanceOperationResult(payload);
     }
 
     private void scheduleRetry(com.pers.entity.OutboxEvent event, Exception exception) {

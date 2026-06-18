@@ -3,20 +3,18 @@ package com.pers.dto.response;
 import com.pers.enums.Currency;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record AccountTransferResponseDto(
-        UUID id,
+public record AccountOperationContextResponse(
+        UUID clientId,
         UUID accountFrom,
         String accountFromName,
         UUID accountTo,
         String accountToName,
-        BigDecimal amount,
-        BigDecimal amountTo,
-        BigDecimal exchangeRate,
+        BigDecimal sourceBalance,
         Currency currency,
         Currency targetCurrency,
-        LocalDateTime timeOfTransfer
+        BigDecimal sourceRate,
+        BigDecimal targetRate
 ) {
 }
