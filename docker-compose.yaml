@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d payments_system" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d payments_system" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      DATA_SOURCE_NAME: "postgresql://user:password@postgres:5432/payments_system?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/payments_system?sslmode=disable"
     depends_on:
       postgres:
         condition: service_healthy
@@ -45,8 +45,10 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - observability-net
     healthcheck:
-      test: [ "CMD", "echo", "ruok", "|", "nc", "localhost", "2181", "|", "grep", "imok" ]
+      test: [ "CMD-SHELL", "nc -z localhost 2181" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -73,7 +75,7 @@ services:
     networks:
       - observability-net
     healthcheck:
-      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
       interval: 10s
       timeout: 5s
       retries: 5
