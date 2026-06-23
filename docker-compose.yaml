@@ -64,7 +64,9 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -80,6 +82,33 @@ services:
       timeout: 5s
       retries: 5
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    ports:
+      - "8070:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    networks:
+      - observability-net
+      - default
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   kafka-exporter:
     image: danielqsj/kafka-exporter
     container_name: kafka-exporter
@@ -87,7 +116,7 @@ services:
       - "9308:9308"
     restart: unless-stopped
     command:
-      - "--kafka.server=kafka:9092"
+      - "--kafka.server=kafka:29092"
     depends_on:
       kafka:
         condition: service_healthy
@@ -202,6 +231,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  ps-project:
+    image: ps-project:latest
+    container_name: ps-project
+    ports:
+      - "8080:8080"
+    build:
+      context: .
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - observability-net
 
 networks:
   observability-net:

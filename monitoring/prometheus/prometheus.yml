@@ -9,6 +9,7 @@ scrape_configs:
       - targets: [ 'localhost:9090' ]
 
   - job_name: 'ps-project'
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['ps-project:8080']
 
