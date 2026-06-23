@@ -1,9 +1,9 @@
-package com.pers.http.rest;
+package com.pers.http.controller;
 
 import com.pers.dto.response.ClientResponseDto;
 import com.pers.exception.BusinessException;
 import com.pers.exception.ErrorCode;
-import com.pers.http.config.CurrentClientId;
+import com.pers.http.config.ClientId;
 import com.pers.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class ClientRestController {
     private final ClientService clientService;
 
     @GetMapping("/profile")
-    public ResponseEntity<ClientResponseDto> findById(@CurrentClientId UUID clientId) {
+    public ResponseEntity<ClientResponseDto> findById(@ClientId UUID clientId) {
         log.info("Получен ответ по данным профиля clientId={}", clientId);
         return clientService.findById(clientId)
                 .map(ResponseEntity::ok)

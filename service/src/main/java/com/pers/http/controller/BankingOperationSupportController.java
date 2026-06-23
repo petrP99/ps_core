@@ -1,4 +1,4 @@
-package com.pers.http.rest;
+package com.pers.http.controller;
 
 import com.pers.dto.request.AccountBalanceOperationRequest;
 import com.pers.dto.request.AccountOperationContextRequest;
@@ -6,7 +6,7 @@ import com.pers.dto.request.CardOperationContextRequest;
 import com.pers.dto.request.PhoneOperationContextRequest;
 import com.pers.dto.response.AccountOperationContextResponse;
 import com.pers.dto.response.CardOperationContextResponse;
-import com.pers.http.config.CurrentClientId;
+import com.pers.http.config.ClientId;
 import com.pers.service.BankingOperationSupportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class BankingOperationSupportController {
     @PostMapping("/card-context")
     public ResponseEntity<CardOperationContextResponse> cardContext(@RequestHeader(X_INTERNAL_TOKEN) String token,
                                                                     @Valid @RequestBody CardOperationContextRequest request,
-                                                                    @CurrentClientId UUID clientId) {
+                                                                    @ClientId UUID clientId) {
         supportService.verifyInternalToken(token);
         return ResponseEntity.ok(supportService.getCardContext(request, clientId));
     }
@@ -39,7 +39,7 @@ public class BankingOperationSupportController {
     @PostMapping("/phone-context")
     public ResponseEntity<CardOperationContextResponse> phoneContext(@RequestHeader(X_INTERNAL_TOKEN) String token,
                                                                      @Valid @RequestBody PhoneOperationContextRequest request,
-                                                                     @CurrentClientId UUID clientId) {
+                                                                     @ClientId UUID clientId) {
         supportService.verifyInternalToken(token);
         return ResponseEntity.ok(supportService.getPhoneContext(request, clientId));
     }
@@ -47,7 +47,7 @@ public class BankingOperationSupportController {
     @PostMapping("/account-context")
     public ResponseEntity<AccountOperationContextResponse> accountContext(@RequestHeader(X_INTERNAL_TOKEN) String token,
                                                                           @Valid @RequestBody AccountOperationContextRequest request,
-                                                                          @CurrentClientId UUID clientId) {
+                                                                          @ClientId UUID clientId) {
         supportService.verifyInternalToken(token);
         return ResponseEntity.ok(supportService.getAccountContext(request, clientId));
     }
@@ -55,7 +55,7 @@ public class BankingOperationSupportController {
     @PostMapping("/account-execute")
     public ResponseEntity<Void> executeAccountOperation(@RequestHeader(X_INTERNAL_TOKEN) String token,
                                                         @Valid @RequestBody AccountBalanceOperationRequest request,
-                                                        @CurrentClientId UUID clientId) {
+                                                        @ClientId UUID clientId) {
         supportService.verifyInternalToken(token);
         supportService.executeAccountOperation(request, clientId);
         return ResponseEntity.noContent().build();

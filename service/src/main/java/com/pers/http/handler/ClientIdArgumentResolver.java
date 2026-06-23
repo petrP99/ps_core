@@ -2,7 +2,7 @@ package com.pers.http.handler;
 
 import com.pers.exception.BusinessException;
 import com.pers.exception.ErrorCode;
-import com.pers.http.config.CurrentClientId;
+import com.pers.http.config.ClientId;
 import com.pers.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
@@ -24,13 +24,13 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Component
 @RequiredArgsConstructor
-public class CurrentClientIdArgumentResolver implements HandlerMethodArgumentResolver {
+public class ClientIdArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final ClientService clientService;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentClientId.class) && parameter.getParameterType().equals(UUID.class);
+        return parameter.hasParameterAnnotation(ClientId.class) && parameter.getParameterType().equals(UUID.class);
     }
 
     @Override

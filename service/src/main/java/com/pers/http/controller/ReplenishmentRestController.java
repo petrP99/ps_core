@@ -1,8 +1,8 @@
-package com.pers.http.rest;
+package com.pers.http.controller;
 
 import com.pers.dto.request.ReplenishmentRequestDto;
 import com.pers.dto.response.ReplenishmentResponseDto;
-import com.pers.http.config.CurrentClientId;
+import com.pers.http.config.ClientId;
 import com.pers.service.ReplenishmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,14 +29,14 @@ public class ReplenishmentRestController {
     @PostMapping
     public ResponseEntity<ReplenishmentResponseDto> replenish(
             @Validated @RequestBody ReplenishmentRequestDto request,
-            @CurrentClientId UUID clientId
+            @ClientId UUID clientId
     ) {
         return ResponseEntity.ok(replenishmentService.replenish(request, clientId));
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<ReplenishmentResponseDto>> getMyReplenishments(
-            @CurrentClientId UUID clientId
+            @ClientId UUID clientId
     ) {
         return ResponseEntity.ok(replenishmentService.findByClientId(clientId));
     }
@@ -44,7 +44,7 @@ public class ReplenishmentRestController {
     @GetMapping("/accounts/{accountId}")
     public ResponseEntity<List<ReplenishmentResponseDto>> getByAccount(
             @PathVariable UUID accountId,
-            @CurrentClientId UUID clientId
+            @ClientId UUID clientId
     ) {
         return ResponseEntity.ok(replenishmentService.findByAccountId(accountId, clientId));
     }

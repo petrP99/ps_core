@@ -1,6 +1,6 @@
 package com.pers.http.config;
 
-import com.pers.http.handler.CurrentClientIdArgumentResolver;
+import com.pers.http.handler.ClientIdArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -20,11 +20,11 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class WebConfiguration implements WebMvcConfigurer {
 
-    private final CurrentClientIdArgumentResolver currentClientIdArgumentResolver;
+    private final ClientIdArgumentResolver clientIdArgumentResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(currentClientIdArgumentResolver);
+        resolvers.add(clientIdArgumentResolver);
     }
 
     @Override

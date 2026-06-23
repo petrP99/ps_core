@@ -1,10 +1,10 @@
-package com.pers.http.rest;
+package com.pers.http.controller;
 
 import com.pers.dto.filter.PageResponse;
 import com.pers.dto.filter.PaymentFilterDto;
 import com.pers.dto.request.PaymentRequestDto;
 import com.pers.dto.response.PaymentResponseDto;
-import com.pers.http.config.CurrentClientId;
+import com.pers.http.config.ClientId;
 import com.pers.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class PaymentRestController {
     @PostMapping("/create")
     public ResponseEntity<PaymentResponseDto> create(
             @Validated @RequestBody PaymentRequestDto payment,
-            @CurrentClientId UUID clientId
+            @ClientId UUID clientId
     ) {
         return ResponseEntity.ok(paymentService.pay(payment, clientId));
     }
@@ -41,7 +41,7 @@ public class PaymentRestController {
     public PageResponse<PaymentResponseDto> clientPayments(
             PaymentFilterDto filter,
             Pageable pageable,
-            @CurrentClientId UUID clientId
+            @ClientId UUID clientId
     ) {
         return PageResponse.of(
                 paymentService.findAllByClientByFilter(filter, pageable, clientId)
@@ -51,7 +51,7 @@ public class PaymentRestController {
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponseDto> getPayment(
             @PathVariable UUID id,
-            @CurrentClientId UUID clientId
+            @ClientId UUID clientId
     ) {
         return paymentService.findByIdAndClientId(id, clientId)
                 .map(ResponseEntity::ok)

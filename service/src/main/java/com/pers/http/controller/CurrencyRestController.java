@@ -1,4 +1,4 @@
-package com.pers.http.rest;
+package com.pers.http.controller;
 
 import com.pers.dto.response.CurrencyRatesResponseDto;
 import com.pers.service.CurrencyService;

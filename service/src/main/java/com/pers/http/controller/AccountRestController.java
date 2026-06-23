@@ -1,10 +1,10 @@
-package com.pers.http.rest;
+package com.pers.http.controller;
 
 import com.pers.dto.request.AccountRequestDto;
 import com.pers.dto.response.AccountResponseDto;
 import com.pers.exception.AccountException;
 import com.pers.exception.ErrorCode;
-import com.pers.http.config.CurrentClientId;
+import com.pers.http.config.ClientId;
 import com.pers.service.AccountClosureService;
 import com.pers.service.AccountService;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class AccountRestController {
 
     @PostMapping("/create")
     public ResponseEntity<AccountResponseDto> create(@Validated @RequestBody AccountRequestDto dto,
-                                                     @CurrentClientId UUID clientId) {
+                                                     @ClientId UUID clientId) {
         AccountResponseDto account = accountService.create(dto, clientId);
         log.info("Создан новый счет clientId={}, accountId={}", clientId, account.id());
         return ResponseEntity.ok(account);
@@ -49,13 +49,13 @@ public class AccountRestController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<AccountResponseDto>> getAll(@CurrentClientId UUID clientId) {
+    public ResponseEntity<List<AccountResponseDto>> getAll(@ClientId UUID clientId) {
         List<AccountResponseDto> all = accountService.findAll(clientId);
         return ResponseEntity.ok(all);
     }
 
     @PostMapping("/{id}/close")
-    public ResponseEntity<Void> close(@PathVariable UUID id, @CurrentClientId UUID clientId) {
+    public ResponseEntity<Void> close(@PathVariable UUID id, @ClientId UUID clientId) {
         accountClosureService.requestClosure(id, clientId);
         return ResponseEntity.status(ACCEPTED).build();
     }
