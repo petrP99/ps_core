@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset pers:create-tables
-CREATE TABLE client
+CREATE TABLE IF NOT EXISTS client
 (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name   VARCHAR(128) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE client
     status       VARCHAR(56)  NOT NULL
 );
 
-CREATE TABLE account
+CREATE TABLE IF NOT EXISTS account
 (
     id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID           NOT NULL REFERENCES client (id),
@@ -22,7 +22,7 @@ CREATE TABLE account
     status    VARCHAR(20)    NOT NULL DEFAULT 'ACTIVE'
 );
 
-CREATE TABLE card
+CREATE TABLE IF NOT EXISTS card
 (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     card_number  VARCHAR(16) UNIQUE NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE card
     status       VARCHAR(56)        NOT NULL
 );
 
-CREATE TABLE payment
+CREATE TABLE IF NOT EXISTS payment
 (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id           UUID           NOT NULL REFERENCES client (id),
@@ -47,7 +47,7 @@ CREATE TABLE payment
     payment_destination VARCHAR(255)   NOT NULL
 );
 
-CREATE TABLE replenishment
+CREATE TABLE IF NOT EXISTS replenishment
 (
     id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id             UUID           NOT NULL REFERENCES client (id),
@@ -57,14 +57,14 @@ CREATE TABLE replenishment
     status                VARCHAR(20)    NOT NULL
 );
 
-CREATE TABLE exchange_rate
+CREATE TABLE IF NOT EXISTS exchange_rate
 (
     currency_code VARCHAR(3) PRIMARY KEY,
     rate          NUMERIC(19, 2) NOT NULL,
     updated_at    DATE           NOT NULL DEFAULT CURRENT_DATE
 );
 
-CREATE TABLE outbox_event
+CREATE TABLE IF NOT EXISTS outbox_event
 (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     aggregate_id    UUID         NOT NULL,
@@ -84,7 +84,7 @@ CREATE INDEX idx_outbox_event_pending
 CREATE INDEX idx_outbox_event_aggregate
     ON outbox_event (aggregate_id);
 
-CREATE TABLE processed_balance_operation
+CREATE TABLE IF NOT EXISTS processed_balance_operation
 (
     operation_id UUID PRIMARY KEY,
     successful   BOOLEAN   NOT NULL,
