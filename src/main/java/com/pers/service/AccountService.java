@@ -26,12 +26,22 @@ public class AccountService {
     private final AccountReadMapper accountReadMapper;
     private final CardService cardService;
     private final CurrencyService currencyService;
+    private final NotificationPublisherService notificationPublisherService;
 
     @Transactional
     public AccountResponseDto create(AccountRequestDto dto, UUID clientId) {
         var account = accountCreateMapper.toEntity(dto, clientId);
         var savedAccount = accountRepository.save(account);
-        return toDto(savedAccount);
+        var response = toDto(savedAccount);
+        notificationPublisherService.publish(
+                clientId,
+                "ACCOUNT_CREATED",
+                "Счет открыт",
+                "Открыт счет " + response.name() + " в валюте " + response.currency(),
+                "ps-project",
+                response.id().toString()
+        );
+        return response;
     }
 
     public Optional<AccountResponseDto> findById(UUID id) {

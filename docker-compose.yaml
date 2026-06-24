@@ -37,6 +37,26 @@ services:
       timeout: 5s
       retries: 5
 
+  notification-db:
+    image: postgres:16-alpine
+    container_name: notification-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: notifications
+      POSTGRES_USER: notifications
+      POSTGRES_PASSWORD: notifications
+    networks:
+      - observability-net
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U notifications -d notifications" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -92,17 +112,10 @@ services:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka:29092
       - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
     depends_on:
-      postgres:
-        condition: service_healthy
       kafka:
         condition: service_healthy
-      redis:
-        condition: service_started
-      keycloak:
-        condition: service_started
     networks:
       - observability-net
-      - default
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080" ]
       interval: 10s
@@ -242,8 +255,75 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
     depends_on:
+      postgres:
+        condition: service_healthy
       kafka:
         condition: service_healthy
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    networks:
+      - observability-net
+      - default
+
+  notification-service:
+    image: notification-service:latest
+    container_name: notification-service
+    ports:
+      - "8083:8083"
+    build:
+      context: ../notification-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notifications
+      SPRING_DATASOURCE_USERNAME: notifications
+      SPRING_DATASOURCE_PASSWORD: notifications
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      JWT_ISSUER_URI: http://localhost:8081/realms/psproject
+      JWT_JWK_SET_URI: http://keycloak:8080/realms/psproject/protocol/openid-connect/certs
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - observability-net
+
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    user: "root"
+    volumes:
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_chunks:/tmp/loki/chunks
+      - loki_index:/tmp/loki/index
+      - loki_rules:/tmp/loki/rules
+    networks:
+      - observability-net
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    user: root
+    ports:
+      - "9080:9080"  # HTTP-интерфейс Alloy (по умолчанию)
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log:ro
+    environment:
+      GRAFANA_LOKI_URL: http://loki:3100/loki/api/v1/push  # локальный Loki
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:9080
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
     networks:
       - observability-net
 
@@ -257,3 +337,8 @@ volumes:
   redis_data:
   grafana-storage:
   kafka_data:
+  notification_postgres_data:
+  loki_data:
+  loki_chunks:
+  loki_index:
+  loki_rules:

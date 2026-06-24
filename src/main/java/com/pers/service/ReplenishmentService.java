@@ -33,6 +33,7 @@ public class ReplenishmentService {
     private final ReplenishmentReadMapper replenishmentReadMapper;
     private final ReplenishmentCreateMapper replenishmentCreateMapper;
     private final AccountRepository accountRepository;
+    private final NotificationPublisherService notificationPublisherService;
 
     @Transactional
     public ReplenishmentResponseDto replenish(ReplenishmentRequestDto replenishment, UUID clientId) {
@@ -57,7 +58,16 @@ public class ReplenishmentService {
         Replenishment savedReplenishment = replenishmentRepository.save(
                 replenishmentCreateMapper.mapFrom(replenishmentDto, SUCCESS, clientId)
         );
-        return replenishmentReadMapper.toEntity(savedReplenishment);
+        ReplenishmentResponseDto response = replenishmentReadMapper.toEntity(savedReplenishment);
+        notificationPublisherService.publish(
+                clientId,
+                "ACCOUNT_REPLENISHED",
+                "Счет пополнен",
+                "Пополнение на сумму " + response.amount() + " успешно выполнено",
+                "ps-project",
+                response.id().toString()
+        );
+        return response;
     }
 
     public List<ReplenishmentResponseDto> findByClientId(UUID id) {

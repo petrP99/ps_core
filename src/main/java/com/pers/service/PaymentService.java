@@ -36,6 +36,7 @@ public class PaymentService {
     private final PaymentReadMapper paymentReadMapper;
     private final PaymentCreateMapper paymentCreateMapper;
     private final AccountRepository accountRepository;
+    private final NotificationPublisherService notificationPublisherService;
 
     @Transactional
     public PaymentResponseDto pay(PaymentRequestDto payment, UUID clientId) {
@@ -61,7 +62,16 @@ public class PaymentService {
         Payment savedPayment = paymentRepository.save(
                 paymentCreateMapper.toEntity(payment, clientId, SUCCESS)
         );
-        return paymentReadMapper.toDto(savedPayment);
+        PaymentResponseDto response = paymentReadMapper.toDto(savedPayment);
+        notificationPublisherService.publish(
+                clientId,
+                "PAYMENT_COMPLETED",
+                "Платеж выполнен",
+                "Платеж на сумму " + response.amount() + " успешно выполнен",
+                "ps-project",
+                response.id().toString()
+        );
+        return response;
     }
 
     public Page<PaymentResponseDto> findAllByClientByFilter(PaymentFilterDto filter, Pageable pageable, UUID clientId) {

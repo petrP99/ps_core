@@ -29,6 +29,7 @@ public class BalanceOperationService {
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
     private final OutboxService outboxService;
+    private final NotificationPublisherService notificationPublisherService;
 
     @Transactional
     public void execute(BalanceOperationCommand command) {
@@ -39,22 +40,22 @@ public class BalanceOperationService {
 
         Optional<CardResponseDto> sourceCard = cardRepository.findByNumber(command.cardFrom());
         if (sourceCard.isEmpty()) {
-            finish(command.operationId(), false, ErrorCode.CARD_SENDER_NOT_FOUND);
+            finish(command, false, ErrorCode.CARD_SENDER_NOT_FOUND);
             return;
         }
         Optional<CardResponseDto> targetCard = cardRepository.findByNumber(command.cardTo());
         if (targetCard.isEmpty()) {
-            finish(command.operationId(), false, ErrorCode.CARD_RECIPIENT_NOT_FOUND);
+            finish(command, false, ErrorCode.CARD_RECIPIENT_NOT_FOUND);
             return;
         }
 
         ErrorCode cardError = validateCards(command, sourceCard.get(), targetCard.get());
         if (cardError != null) {
-            finish(command.operationId(), false, cardError);
+            finish(command, false, cardError);
             return;
         }
         if (Objects.equals(sourceCard.get().accountId(), targetCard.get().accountId())) {
-            finish(command.operationId(), false, ErrorCode.OPERATION_SAME_ACCOUNT);
+            finish(command, false, ErrorCode.OPERATION_SAME_ACCOUNT);
             return;
         }
 
@@ -68,7 +69,7 @@ public class BalanceOperationService {
         Optional<Account> first = accountRepository.findByIdForUpdate(firstId);
         Optional<Account> second = accountRepository.findByIdForUpdate(secondId);
         if (first.isEmpty() || second.isEmpty()) {
-            finish(command.operationId(), false, ErrorCode.ACCOUNT_NOT_FOUND);
+            finish(command, false, ErrorCode.ACCOUNT_NOT_FOUND);
             return;
         }
 
@@ -81,17 +82,17 @@ public class BalanceOperationService {
 
         ErrorCode accountError = validateAccounts(command, source, target);
         if (accountError != null) {
-            finish(command.operationId(), false, accountError);
+            finish(command, false, accountError);
             return;
         }
         if (source.getBalance().compareTo(command.debitAmount()) < 0) {
-            finish(command.operationId(), false, ErrorCode.ACCOUNT_INSUFFICIENT_FUNDS);
+            finish(command, false, ErrorCode.ACCOUNT_INSUFFICIENT_FUNDS);
             return;
         }
 
         source.setBalance(source.getBalance().subtract(command.debitAmount()));
         target.setBalance(target.getBalance().add(command.amountTo()));
-        finish(command.operationId(), true, null);
+        finish(command, true, null);
         log.info("Балансовая операция {} выполнена", command.operationId());
     }
 
@@ -133,7 +134,8 @@ public class BalanceOperationService {
         return null;
     }
 
-    private void finish(UUID operationId, boolean successful, ErrorCode failureCode) {
+    private void finish(BalanceOperationCommand command, boolean successful, ErrorCode failureCode) {
+        UUID operationId = command.operationId();
         String failure = failureCode == null ? null : failureCode.name();
         processedOperationRepository.save(ProcessedBalanceOperation.builder()
                 .operationId(operationId)
@@ -144,6 +146,35 @@ public class BalanceOperationService {
 
         outboxService.saveBalanceOperationResult(
                 new BalanceOperationResult(operationId, successful, failure)
+        );
+
+        if (successful) {
+            notificationPublisherService.publish(
+                    command.fromClientId(),
+                    "TRANSFER_COMPLETED",
+                    "Перевод выполнен",
+                    "Списано " + command.debitAmount() + " " + command.currency(),
+                    "ps-project",
+                    operationId.toString()
+            );
+            notificationPublisherService.publish(
+                    command.toClientId(),
+                    "TRANSFER_RECEIVED",
+                    "Перевод получен",
+                    "Зачислено " + command.amountTo() + " " + command.targetCurrency(),
+                    "ps-project",
+                    operationId.toString()
+            );
+            return;
+        }
+
+        notificationPublisherService.publish(
+                command.fromClientId(),
+                "TRANSFER_FAILED",
+                "Перевод не выполнен",
+                "Перевод не выполнен: " + failure,
+                "ps-project",
+                operationId.toString()
         );
     }
 }

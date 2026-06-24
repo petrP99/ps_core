@@ -2,6 +2,7 @@ package com.pers.kafka;
 
 import com.pers.dto.event.AccountCloseEvent;
 import com.pers.dto.event.BalanceOperationResult;
+import com.pers.dto.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,9 @@ public class KafkaProducerService {
     @Value("${spring.kafka.topics.balance-operation-result}")
     private String balanceOperationResultTopic;
 
+    @Value("${spring.kafka.topics.notifications}")
+    private String notificationsTopic;
+
     public void sendAccountCloseEvent(AccountCloseEvent event) {
         kafkaTemplate.send(accountCloseTopic, event.accountId().toString(), event);
         log.info("Отправлено событие по закрытию счете с accountId: {}", event.accountId());
@@ -39,5 +43,10 @@ public class KafkaProducerService {
                     exception
             );
         }
+    }
+
+    public void sendNotification(NotificationEvent event) {
+        kafkaTemplate.send(notificationsTopic, event.recipientPhone(), event);
+        log.info("Отправлено уведомление {} для {}", event.type(), event.recipientPhone());
     }
 }

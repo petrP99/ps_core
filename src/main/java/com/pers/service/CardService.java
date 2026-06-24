@@ -37,6 +37,7 @@ public class CardService {
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
     private final CardMapper cardMapper;
+    private final NotificationPublisherService notificationPublisherService;
 
     public Optional<CardResponseDto> findById(UUID id) {
         return cardRepository.findCardWithBalanceById(id);
@@ -72,12 +73,21 @@ public class CardService {
         String cardNumber = generateUniqueCardNumber(prefix, Boolean.TRUE.equals(dto.isPremium()));
         Card card = cardMapper.toEntity(dto, clientId, cardNumber);
         Card savedCard = cardRepository.save(card);
-        return cardRepository.findByNumber(savedCard.getCardNumber())
+        CardResponseDto response = cardRepository.findByNumber(savedCard.getCardNumber())
                 .orElseThrow(() -> new CardException(
                         INTERNAL_SERVER_ERROR,
                         ErrorCode.CARD_NUMBER_NOT_FOUND,
                         savedCard.getCardNumber()
                 ));
+        notificationPublisherService.publish(
+                clientId,
+                "CARD_CREATED",
+                "Карта выпущена",
+                "Выпущена карта " + response.name() + " в валюте " + response.currency(),
+                "ps-project",
+                response.id().toString()
+        );
+        return response;
 
     }
 
@@ -141,11 +151,20 @@ public class CardService {
         card.setStatus(Status.BLOCKED);
         cardRepository.flush();
 
-        return cardRepository.findCardWithBalanceById(id)
+        CardResponseDto response = cardRepository.findCardWithBalanceById(id)
                 .orElseThrow(() -> new CardException(
                         INTERNAL_SERVER_ERROR,
                         ErrorCode.CARD_NOT_FOUND,
                         id
                 ));
+        notificationPublisherService.publish(
+                response.clientId(),
+                "CARD_BLOCKED",
+                "Карта заблокирована",
+                "Карта " + response.name() + " заблокирована",
+                "ps-project",
+                response.id().toString()
+        );
+        return response;
     }
 }

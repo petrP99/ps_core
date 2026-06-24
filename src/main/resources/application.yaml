@@ -43,6 +43,7 @@ spring:
       balance-operation-execute: ps-transfer-execute
       balance-operation-result: ps-transfer-result
       account-close: ps-account-close
+      notifications: ps-notifications
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -86,3 +87,16 @@ outbox:
     max-attempts: 20
     retention-days: 7
     cleanup-cron: "0 0 3 * * *"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true

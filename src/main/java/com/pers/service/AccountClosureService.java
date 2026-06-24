@@ -29,6 +29,7 @@ public class AccountClosureService {
     private final CardRepository cardRepository;
     private final AccountClosureCheckService closureCheckService;
     private final KafkaProducerService kafkaProducerService;
+    private final NotificationPublisherService notificationPublisherService;
 
     @Transactional(readOnly = true)
     public void requestClosure(UUID accountId, UUID clientId) {
@@ -47,6 +48,14 @@ public class AccountClosureService {
 
         kafkaProducerService.sendAccountCloseEvent(
                 new AccountCloseEvent(accountId, clientId, LocalDateTime.now())
+        );
+        notificationPublisherService.publish(
+                clientId,
+                "ACCOUNT_CLOSE_REQUESTED",
+                "Закрытие счета запрошено",
+                "Запрос на закрытие счета принят в обработку",
+                "ps-project",
+                accountId.toString()
         );
     }
 
@@ -72,6 +81,14 @@ public class AccountClosureService {
         account.setStatus(Status.CLOSED);
         cardRepository.findAllByAccountId(account.getId())
                 .forEach(card -> card.setStatus(Status.BLOCKED));
+        notificationPublisherService.publish(
+                account.getClientId(),
+                "ACCOUNT_CLOSED",
+                "Счет закрыт",
+                "Счет успешно закрыт",
+                "ps-project",
+                account.getId().toString()
+        );
         log.info("Счет {} закрыт по событию Kafka", account.getId());
     }
 }
