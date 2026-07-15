@@ -38,7 +38,7 @@ public class AccountService {
                 "ACCOUNT_CREATED",
                 "Счет открыт",
                 "Открыт счет " + response.name() + " в валюте " + response.currency(),
-                "ps-project",
+                "ps_core",
                 response.id().toString()
         );
         return response;

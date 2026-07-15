@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: payments_system
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     networks:
       - observability-net
     ports:
@@ -25,7 +25,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/payments_system?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/payments_system?sslmode=disable"
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,26 +33,6 @@ services:
       - observability-net
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  notification-db:
-    image: postgres:16-alpine
-    container_name: notification-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: notifications
-      POSTGRES_USER: notifications
-      POSTGRES_PASSWORD: notifications
-    networks:
-      - observability-net
-    ports:
-      - "5435:5432"
-    volumes:
-      - notification_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U notifications -d notifications" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -87,7 +67,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://${PUBLIC_HOST:-localhost}:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -148,11 +128,13 @@ services:
     environment:
       POSTGRES_DB: keycloak_db
       POSTGRES_USER: keycloak_user
-      POSTGRES_PASSWORD: keycloak_password
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
     ports:
       - "5433:5432"
     volumes:
       - keycloak_postgres_data:/var/lib/postgresql/data
+    networks:
+      - observability-net
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.3
@@ -163,16 +145,18 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak_db
       KC_DB_USERNAME: keycloak_user
-      KC_DB_PASSWORD: keycloak_password
-      KC_HOSTNAME: localhost
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
+      KC_HOSTNAME: ${PUBLIC_HOST:-localhost}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
     ports:
       - "8081:8080"
     command: [ "start-dev", "--import-realm" ]
     volumes:
       - ./keycloak:/opt/keycloak/data/import
       - ./keycloak/themes:/opt/keycloak/themes
+    networks:
+      - observability-net
 
   keycloak-config:
     image: quay.io/keycloak/keycloak:24.0.3
@@ -185,8 +169,8 @@ services:
         until /opt/keycloak/bin/kcadm.sh config credentials \
           --server http://keycloak:8080 \
           --realm master \
-          --user admin \
-          --password admin; do
+          --user ${KEYCLOAK_ADMIN:-admin} \
+          --password ${KEYCLOAK_ADMIN_PASSWORD:-admin}; do
           sleep 2
         done
         /opt/keycloak/bin/kcadm.sh update realms/psproject \
@@ -195,7 +179,42 @@ services:
           -s 'supportedLocales=["ru","en"]' \
           -s defaultLocale=ru \
           -s registrationEmailAsUsername=true
+        CLIENT_UUID=$$(/opt/keycloak/bin/kcadm.sh get clients \
+          -r psproject \
+          -q clientId=psproject-frontend \
+          --fields id \
+          --format csv | tail -n 1 | tr -d '"')
+        /opt/keycloak/bin/kcadm.sh update clients/$$CLIENT_UUID -r psproject \
+          -s 'redirectUris=["${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:5173/*","${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:9091/*"]' \
+          -s 'webOrigins=["${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:5173","${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:9091"]' \
+          -s 'attributes."post.logout.redirect.uris"=${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:5173/*##${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:9091/*'
+        CLIENT_SCOPE_UUID=$$(/opt/keycloak/bin/kcadm.sh get client-scopes \
+          -r psproject \
+          -q name=profile \
+          --fields id \
+          --format csv | tail -n 1 | tr -d '"')
+        CLIENT_ID_MAPPER_EXISTS=$$(/opt/keycloak/bin/kcadm.sh get client-scopes/$$CLIENT_SCOPE_UUID/protocol-mappers/models \
+          -r psproject \
+          --fields name \
+          --format csv | grep -c '"clientId"' || true)
+        if [ "$$CLIENT_ID_MAPPER_EXISTS" = "0" ]; then
+          /opt/keycloak/bin/kcadm.sh create client-scopes/$$CLIENT_SCOPE_UUID/protocol-mappers/models \
+            -r psproject \
+            -s name=clientId \
+            -s protocol=openid-connect \
+            -s protocolMapper=oidc-usermodel-attribute-mapper \
+            -s consentRequired=false \
+            -s 'config."user.attribute"=clientId' \
+            -s 'config."claim.name"=clientId' \
+            -s 'config."jsonType.label"=String' \
+            -s 'config."access.token.claim"=true' \
+            -s 'config."id.token.claim"=true' \
+            -s 'config."userinfo.token.claim"=true' \
+            -s 'config."introspection.token.claim"=true'
+        fi
     restart: "no"
+    networks:
+      - observability-net
 
   redis:
     image: redis:7-alpine
@@ -225,35 +244,50 @@ services:
       retries: 5
 
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana-oss:13.0.2
     container_name: grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-admin}
     depends_on:
       prometheus:
         condition: service_healthy
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
     networks:
       - observability-net
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  ps-project:
-    image: ps-project:latest
-    container_name: ps-project
+  ps_core:
+    image: ps_core:latest
+    container_name: ps_core
     ports:
       - "8080:8080"
     build:
       context: .
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: ${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:8081/realms/psproject
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/psproject/protocol/openid-connect/certs
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      TRANSFER_INTERNAL_TOKEN: ${TRANSFER_INTERNAL_TOKEN:-dev-transfer-internal-token}
+      CASHBACK_INTERNAL_TOKEN: ${CASHBACK_INTERNAL_TOKEN:-dev-cashback-internal-token}
+      SPRING_KAFKA_TOPICS_PAYMENT_EVENTS: ps-payment-events
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4318/v1/traces
+      TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLING_PROBABILITY:-1.0}
     depends_on:
       postgres:
         condition: service_healthy
@@ -263,36 +297,60 @@ services:
         condition: service_started
       keycloak:
         condition: service_started
+      alloy:
+        condition: service_started
     networks:
       - observability-net
       - default
 
-  notification-service:
-    image: notification-service:latest
-    container_name: notification-service
-    ports:
-      - "8083:8083"
-    build:
-      context: ../notification-service
+  minio:
+    image: minio/minio:latest
+    container_name: tempo-minio
+    command: server /data --console-address ":9001"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notifications
-      SPRING_DATASOURCE_USERNAME: notifications
-      SPRING_DATASOURCE_PASSWORD: notifications
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      JWT_ISSUER_URI: http://localhost:8081/realms/psproject
-      JWT_JWK_SET_URI: http://keycloak:8080/realms/psproject/protocol/openid-connect/certs
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tempo}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-tempo-tempo}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - observability-net
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: tempo-minio-init
     depends_on:
-      notification-db:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      keycloak:
-        condition: service_started
+      - minio
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        until mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-tempo} ${MINIO_ROOT_PASSWORD:-tempo-tempo}; do
+          sleep 2
+        done
+        mc mb --ignore-existing local/tempo
+    networks:
+      - observability-net
+
+  tempo:
+    image: grafana/tempo:2.5.0
+    container_name: tempo
+    user: "root"
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo_wal:/var/tempo/wal
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
     networks:
       - observability-net
 
   loki:
-    image: grafana/loki:2.9.2
+    image: grafana/loki:3.2.1
     container_name: loki
     ports:
       - "3100:3100"
@@ -300,9 +358,11 @@ services:
     user: "root"
     volumes:
       - ./monitoring/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
-      - loki_chunks:/tmp/loki/chunks
-      - loki_index:/tmp/loki/index
-      - loki_rules:/tmp/loki/rules
+      - loki_chunks:/loki/chunks
+      - loki_index:/loki/tsdb-index
+      - loki_cache:/loki/tsdb-cache
+      - loki_compactor:/loki/compactor
+      - loki_rules:/loki/rules
     networks:
       - observability-net
 
@@ -312,6 +372,8 @@ services:
     user: root
     ports:
       - "9080:9080"  # HTTP-интерфейс Alloy (по умолчанию)
+      - "4317:4317"
+      - "4318:4318"
     volumes:
       - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -329,6 +391,7 @@ services:
 
 networks:
   observability-net:
+    name: ps-observability-net
     driver: bridge
 
 volumes:
@@ -337,8 +400,11 @@ volumes:
   redis_data:
   grafana-storage:
   kafka_data:
-  notification_postgres_data:
   loki_data:
   loki_chunks:
   loki_index:
+  loki_cache:
+  loki_compactor:
   loki_rules:
+  minio_data:
+  tempo_wal:

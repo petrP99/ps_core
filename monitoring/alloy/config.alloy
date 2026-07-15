@@ -5,6 +5,56 @@ loki.write "local" {
   }
 }
 
+// OTLP receiver for application traces
+otelcol.receiver.otlp "apps" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces = [otelcol.processor.batch.traces.input]
+  }
+}
+
+// Batch traces before exporting to reduce pressure on Tempo and exporter queue
+otelcol.processor.batch "traces" {
+  timeout             = "5s"
+  send_batch_size     = 1024
+  send_batch_max_size = 2048
+
+  output {
+    traces = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+// Forward traces to Tempo
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "tempo:4317"
+
+    tls {
+      insecure = true
+    }
+  }
+
+  sending_queue {
+    enabled       = true
+    queue_size    = 10000
+    num_consumers = 10
+  }
+
+  retry_on_failure {
+    enabled          = true
+    initial_interval = "1s"
+    max_interval     = "10s"
+    max_elapsed_time = "60s"
+  }
+}
+
 // Discover running Docker containers
 discovery.docker "containers" {
   host             = "unix:///var/run/docker.sock"

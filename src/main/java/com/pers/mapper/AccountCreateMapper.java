@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static com.pers.enums.Status.ACTIVE;
@@ -28,6 +29,7 @@ public class AccountCreateMapper {
                 .name(name)
                 .cashback(CASHBACK_DEFAULT_VALUE)
                 .status(ACTIVE)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 }

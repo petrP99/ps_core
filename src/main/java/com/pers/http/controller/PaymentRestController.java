@@ -34,6 +34,13 @@ public class PaymentRestController {
             @Validated @RequestBody PaymentRequestDto payment,
             @ClientId UUID clientId
     ) {
+        log.info(
+                "Получен запрос на платеж: clientId={}, accountId={}, amount={}, recipient={}",
+                clientId,
+                payment.accountId(),
+                payment.amount(),
+                payment.recipient()
+        );
         return ResponseEntity.ok(paymentService.pay(payment, clientId));
     }
 

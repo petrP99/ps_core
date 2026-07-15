@@ -54,7 +54,7 @@ public class AccountClosureService {
                 "ACCOUNT_CLOSE_REQUESTED",
                 "Закрытие счета запрошено",
                 "Запрос на закрытие счета принят в обработку",
-                "ps-project",
+                "ps_core",
                 accountId.toString()
         );
     }
@@ -86,7 +86,7 @@ public class AccountClosureService {
                 "ACCOUNT_CLOSED",
                 "Счет закрыт",
                 "Счет успешно закрыт",
-                "ps-project",
+                "ps_core",
                 account.getId().toString()
         );
         log.info("Счет {} закрыт по событию Kafka", account.getId());

@@ -1,7 +1,13 @@
-FROM maven:3.9-eclipse-temurin-21 AS build
+# syntax=docker/dockerfile:1.7
+
+FROM maven:3.9-eclipse-temurin-21 AS dependencies
 WORKDIR /app
-COPY . .
-RUN mvn -DskipTests package
+COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2 mvn -B -Dmaven.test.skip=true dependency:go-offline
+
+FROM dependencies AS build
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn -B -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app

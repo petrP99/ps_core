@@ -64,7 +64,7 @@ public class ReplenishmentService {
                 "ACCOUNT_REPLENISHED",
                 "Счет пополнен",
                 "Пополнение на сумму " + response.amount() + " успешно выполнено",
-                "ps-project",
+                "ps_core",
                 response.id().toString()
         );
         return response;

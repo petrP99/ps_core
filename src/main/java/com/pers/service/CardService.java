@@ -84,7 +84,7 @@ public class CardService {
                 "CARD_CREATED",
                 "Карта выпущена",
                 "Выпущена карта " + response.name() + " в валюте " + response.currency(),
-                "ps-project",
+                "ps_core",
                 response.id().toString()
         );
         return response;
@@ -162,7 +162,7 @@ public class CardService {
                 "CARD_BLOCKED",
                 "Карта заблокирована",
                 "Карта " + response.name() + " заблокирована",
-                "ps-project",
+                "ps_core",
                 response.id().toString()
         );
         return response;

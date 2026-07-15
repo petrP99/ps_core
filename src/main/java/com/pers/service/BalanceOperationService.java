@@ -93,7 +93,16 @@ public class BalanceOperationService {
         source.setBalance(source.getBalance().subtract(command.debitAmount()));
         target.setBalance(target.getBalance().add(command.amountTo()));
         finish(command, true, null);
-        log.info("Балансовая операция {} выполнена", command.operationId());
+        log.info(
+                "Балансовая операция перевода выполнена: operationId={}, fromClientId={}, toClientId={}, debitAmount={}, amountTo={}, currency={}, targetCurrency={}",
+                command.operationId(),
+                command.fromClientId(),
+                command.toClientId(),
+                command.debitAmount(),
+                command.amountTo(),
+                command.currency(),
+                command.targetCurrency()
+        );
     }
 
     private ErrorCode validateCards(BalanceOperationCommand command, CardResponseDto source, CardResponseDto target) {
@@ -154,7 +163,7 @@ public class BalanceOperationService {
                     "TRANSFER_COMPLETED",
                     "Перевод выполнен",
                     "Списано " + command.debitAmount() + " " + command.currency(),
-                    "ps-project",
+                    "ps_core",
                     operationId.toString()
             );
             notificationPublisherService.publish(
@@ -162,18 +171,27 @@ public class BalanceOperationService {
                     "TRANSFER_RECEIVED",
                     "Перевод получен",
                     "Зачислено " + command.amountTo() + " " + command.targetCurrency(),
-                    "ps-project",
+                    "ps_core",
                     operationId.toString()
             );
             return;
         }
 
+        log.warn(
+                "Балансовая операция перевода не выполнена: operationId={}, fromClientId={}, toClientId={}, debitAmount={}, amountTo={}, code={}",
+                operationId,
+                command.fromClientId(),
+                command.toClientId(),
+                command.debitAmount(),
+                command.amountTo(),
+                failure
+        );
         notificationPublisherService.publish(
                 command.fromClientId(),
                 "TRANSFER_FAILED",
                 "Перевод не выполнен",
                 "Перевод не выполнен: " + failure,
-                "ps-project",
+                "ps_core",
                 operationId.toString()
         );
     }

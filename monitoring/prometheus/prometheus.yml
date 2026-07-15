@@ -8,10 +8,29 @@ scrape_configs:
     static_configs:
       - targets: [ 'localhost:9090' ]
 
-  - job_name: 'ps-project'
+  - job_name: 'java'
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ['ps-project:8080']
+      - targets:
+          - 'ps_core:8080'
+          - 'ps-transfer:8082'
+          - 'bff:9091'
+          - 'notification-service:8083'
+
+  - job_name: 'ps_core'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['ps_core:8080']
+
+  - job_name: 'ps-transfer'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['ps-transfer:8082']
+
+  - job_name: 'bff'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['bff:9091']
 
   - job_name: 'notification-service'
     metrics_path: /actuator/prometheus
@@ -21,6 +40,13 @@ scrape_configs:
   - job_name: 'postgres-exporter'
     static_configs:
       - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'ps_core'
+          database: 'payments_system'
+      - targets: ['transfer-postgres-exporter:9187']
+        labels:
+          service: 'ps-transfer'
+          database: 'ps_transfer'
 
   - job_name: 'kafka-exporter'
     static_configs:

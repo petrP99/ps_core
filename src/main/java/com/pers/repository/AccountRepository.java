@@ -1,6 +1,7 @@
 package com.pers.repository;
 
 import com.pers.entity.Account;
+import com.pers.enums.Status;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -15,6 +16,8 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
 
     List<Account> findAllByClientId(UUID clientId);
+
+    List<Account> findAllByStatus(Status status);
 
     Optional<Account> findByIdAndClientId(UUID id, UUID clientId);
 

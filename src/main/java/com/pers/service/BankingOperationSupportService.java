@@ -2,19 +2,24 @@ package com.pers.service;
 
 import com.pers.dto.request.AccountBalanceOperationRequest;
 import com.pers.dto.request.AccountOperationContextRequest;
+import com.pers.dto.request.CashbackPayoutRequest;
 import com.pers.dto.request.CardOperationContextRequest;
 import com.pers.dto.request.PhoneOperationContextRequest;
 import com.pers.dto.response.AccountOperationContextResponse;
+import com.pers.dto.response.CashbackPayoutResponse;
 import com.pers.dto.response.CardOperationContextResponse;
 import com.pers.dto.response.CardResponseDto;
+import com.pers.dto.response.ClientBalanceSnapshotResponse;
 import com.pers.entity.Account;
 import com.pers.entity.Client;
+import com.pers.entity.Replenishment;
 import com.pers.enums.Status;
 import com.pers.exception.BusinessException;
 import com.pers.exception.ErrorCode;
 import com.pers.repository.AccountRepository;
 import com.pers.repository.CardRepository;
 import com.pers.repository.ClientRepository;
+import com.pers.repository.ReplenishmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,10 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.pers.enums.Currency.RUB;
+import static com.pers.enums.Status.SUCCESS;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -38,10 +46,15 @@ public class BankingOperationSupportService {
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
+    private final ReplenishmentRepository replenishmentRepository;
     private final CurrencyService currencyService;
+    private final NotificationPublisherService notificationPublisherService;
 
     @Value("${services.ps-transfer.internal-token}")
     private String internalToken;
+
+    @Value("${services.ps-cashback.internal-token}")
+    private String cashbackInternalToken;
 
     @Transactional(readOnly = true)
     public CardOperationContextResponse getCardContext(CardOperationContextRequest request, UUID clientId) {
@@ -109,6 +122,56 @@ public class BankingOperationSupportService {
 
         source.setBalance(source.getBalance().subtract(request.debitAmount()));
         target.setBalance(target.getBalance().add(request.creditAmount()));
+    }
+
+    @Transactional
+    public CashbackPayoutResponse executeCashbackPayout(CashbackPayoutRequest request) {
+        return replenishmentRepository.findByExternalOperationId(request.operationId())
+                .map(replenishment -> new CashbackPayoutResponse(replenishment.getId()))
+                .orElseGet(() -> createCashbackPayout(request));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClientBalanceSnapshotResponse> getClientBalanceSnapshotsForCashback() {
+        return accountRepository.findAllByStatus(Status.ACTIVE).stream()
+                .collect(Collectors.groupingBy(
+                        Account::getClientId,
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                account -> account.getBalance().multiply(currencyService.getRateFromCache(account.getCurrency())),
+                                BigDecimal::add
+                        )
+                ))
+                .entrySet().stream()
+                .map(entry -> new ClientBalanceSnapshotResponse(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private CashbackPayoutResponse createCashbackPayout(CashbackPayoutRequest request) {
+        Account account = findAccountForUpdate(request.accountId());
+        validateOwnedAccount(account, request.clientId());
+        validateActiveAccount(account);
+
+        account.setBalance(account.getBalance().add(request.amount()));
+        Replenishment replenishment = replenishmentRepository.save(Replenishment.builder()
+                .clientId(request.clientId())
+                .accountId(request.accountId())
+                .amount(request.amount())
+                .timeOfReplenishment(java.time.LocalDateTime.now())
+                .status(SUCCESS)
+                .externalOperationId(request.operationId())
+                .sourceType("CASHBACK")
+                .description(request.description())
+                .build());
+        notificationPublisherService.publish(
+                request.clientId(),
+                "CASHBACK_PAID",
+                "Кешбэк выплачен",
+                request.description() + ": " + request.amount(),
+                "ps_core",
+                replenishment.getId().toString()
+        );
+        return new CashbackPayoutResponse(replenishment.getId());
     }
 
     private CardOperationContextResponse buildCardContext(String sourceNumber, String targetNumber, UUID clientId) {
@@ -260,6 +323,12 @@ public class BankingOperationSupportService {
 
     public void verifyInternalToken(String token) {
         if (!internalToken.equals(token)) {
+            throw new BusinessException(FORBIDDEN, ErrorCode.INTERNAL_ACCESS_DENIED);
+        }
+    }
+
+    public void verifyCashbackInternalToken(String token) {
+        if (!cashbackInternalToken.equals(token)) {
             throw new BusinessException(FORBIDDEN, ErrorCode.INTERNAL_ACCESS_DENIED);
         }
     }

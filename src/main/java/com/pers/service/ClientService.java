@@ -9,6 +9,7 @@ import com.pers.mapper.ClientCreateMapper;
 import com.pers.mapper.ClientReadMapper;
 import com.pers.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.pers.util.constant.Constants.DEFAULT_ACCOUNT_NAME;
+import static com.pers.util.constant.Constants.KEYCLOAK_SUB;
 
 
 @Service
@@ -40,20 +42,43 @@ public class ClientService {
 
     @Transactional
     public UUID getIdFromSuccessAuth(Map<String, Object> attributes) {
-        ClientRequestDto createDto = clientCreateMapper.mapToDto(attributes);
-        AccountRequestDto defaultAccount = new AccountRequestDto(Currency.RUB, DEFAULT_ACCOUNT_NAME);
+        UUID clientId = extractSubjectClientId(attributes);
+        if (clientRepository.existsById(clientId)) {
+            return clientId;
+        }
 
-        return clientRepository.findByPhone(createDto.phone())
-                .map(Client::getId)
-                .orElseGet(() -> {
-                    UUID clientId = create(createDto).getId();
-                    accountService.create(defaultAccount, clientId);
-                    return clientId;
-                });
+        ClientRequestDto createDto = clientCreateMapper.mapToDto(attributes);
+        try {
+            return createClientWithDefaultAccount(createDto, clientId);
+        } catch (DataIntegrityViolationException exception) {
+            if (clientRepository.existsById(clientId)) {
+                return clientId;
+            }
+            throw exception;
+        }
     }
 
-    private ClientResponseDto create(ClientRequestDto clientDto) {
-        Client client = clientRepository.save(clientCreateMapper.toEntity(clientDto));
+    private UUID createClientWithDefaultAccount(ClientRequestDto clientDto, UUID clientId) {
+        AccountRequestDto defaultAccount = new AccountRequestDto(Currency.RUB, DEFAULT_ACCOUNT_NAME);
+        ClientResponseDto createdClient = create(clientDto, clientId);
+        accountService.create(defaultAccount, createdClient.getId());
+        return createdClient.getId();
+    }
+
+    private UUID extractSubjectClientId(Map<String, Object> attributes) {
+        Object subject = attributes.get(KEYCLOAK_SUB);
+        if (subject instanceof String value && !value.isBlank()) {
+            return UUID.fromString(value);
+        }
+        throw new IllegalStateException("JWT claim sub is missing or empty");
+    }
+
+    private ClientResponseDto create(ClientRequestDto clientDto, UUID clientId) {
+        Client newClient = clientCreateMapper.toEntity(clientDto);
+        if (clientId != null) {
+            newClient.setId(clientId);
+        }
+        Client client = clientRepository.saveAndFlush(newClient);
         BigDecimal balance = accountService.getClientTotalBalance(client.getId());
         return clientReadMapper.mapFrom(client, balance);
     }

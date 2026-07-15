@@ -32,7 +32,9 @@ public class ReplenishmentReadMapper implements Mapper<Replenishment, Replenishm
                 account.getCurrency(),
                 object.getAmount(),
                 object.getTimeOfReplenishment(),
-                object.getStatus()
+                object.getStatus(),
+                object.getSourceType(),
+                object.getDescription()
         );
     }
 }

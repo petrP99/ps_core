@@ -15,6 +15,8 @@ public record ReplenishmentResponseDto(
         Currency currency,
         BigDecimal amount,
         LocalDateTime timeOfReplenishment,
-        Status status
+        Status status,
+        String sourceType,
+        String description
 ) {
 }

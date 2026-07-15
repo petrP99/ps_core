@@ -67,4 +67,22 @@ public class Replenishment implements BaseEntity<UUID> {
      */
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    /**
+     * Внешний идентификатор операции для идемпотентных внутренних пополнений.
+     */
+    @Column(name = "external_operation_id", unique = true)
+    private UUID externalOperationId;
+
+    /**
+     * Источник пополнения: ручное пополнение, кешбэк и т.д.
+     */
+    @Column(name = "source_type", nullable = false)
+    private String sourceType;
+
+    /**
+     * Описание пополнения для истории операций.
+     */
+    @Column
+    private String description;
 }

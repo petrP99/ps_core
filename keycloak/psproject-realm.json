@@ -1161,6 +1161,22 @@
           }
         },
         {
+          "id": "5c83e747-383d-40bb-9c97-0c90a8be5a65",
+          "name": "clientId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "clientId",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "clientId",
+            "jsonType.label": "String"
+          }
+        },
+        {
           "id": "94800aa4-fbb4-4ac2-8f11-31da665987d0",
           "name": "website",
           "protocol": "openid-connect",

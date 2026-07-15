@@ -3,10 +3,14 @@ package com.pers.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pers.dto.event.BalanceOperationResult;
+import com.pers.dto.event.PaymentCompletedEvent;
 import com.pers.entity.OutboxEvent;
 import com.pers.enums.OutboxEventType;
+import com.pers.http.config.OutboxTraceContext;
 import com.pers.kafka.KafkaProducerService;
 import com.pers.repository.OutboxEventRepository;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +32,8 @@ public class OutboxPublisherService {
     private final OutboxEventRepository outboxEventRepository;
     private final KafkaProducerService kafkaProducerService;
     private final ObjectMapper objectMapper;
+    private final OutboxTraceContext outboxTraceContext;
+    private final Tracer tracer;
 
     @Value("${outbox.publisher.batch-size:50}")
     private int batchSize;
@@ -50,16 +56,24 @@ public class OutboxPublisherService {
     }
 
     private void publish(com.pers.entity.OutboxEvent event) {
+        Span span = outboxTraceContext.startSpan(event.getTraceParent(), "outbox publish " + event.getEventType());
         try {
-            OutboxEventType eventType = Objects.requireNonNull(event.getEventType());
-            if (eventType == OutboxEventType.BALANCE_OPERATION_RESULT) {
-                publishBalanceOperationResult(event);
+            try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {
+                OutboxEventType eventType = Objects.requireNonNull(event.getEventType());
+                if (eventType == OutboxEventType.BALANCE_OPERATION_RESULT) {
+                    publishBalanceOperationResult(event);
+                } else if (eventType == OutboxEventType.PAYMENT_COMPLETED) {
+                    publishPaymentCompleted(event);
+                }
             }
             event.setStatus(OutboxEventType.PUBLISHED);
             event.setPublishedAt(LocalDateTime.now());
             event.setLastError(null);
         } catch (Exception e) {
+            span.error(e);
             scheduleRetry(event, e);
+        } finally {
+            span.end();
         }
     }
 
@@ -69,6 +83,12 @@ public class OutboxPublisherService {
         BalanceOperationResult payload =
                 objectMapper.readValue(event.getPayload(), BalanceOperationResult.class);
         kafkaProducerService.sendBalanceOperationResult(payload);
+    }
+
+    private void publishPaymentCompleted(com.pers.entity.OutboxEvent event) throws JsonProcessingException {
+        PaymentCompletedEvent payload =
+                objectMapper.readValue(event.getPayload(), PaymentCompletedEvent.class);
+        kafkaProducerService.sendPaymentCompleted(payload);
     }
 
     private void scheduleRetry(com.pers.entity.OutboxEvent event, Exception exception) {

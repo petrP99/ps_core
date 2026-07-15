@@ -24,5 +24,6 @@ public class Constants {
     public static final String KEYCLOAK_NAME = "name";
     public static final String KEYCLOAK_FAMILY_NAME = "family_name";
     public static final String KEYCLOAK_PHONE = "phone";
+    public static final String KEYCLOAK_SUB = "sub";
 
 }

@@ -20,6 +20,7 @@ public class ReplenishmentCreateMapper {
                 .amount(object.amount())
                 .timeOfReplenishment(LocalDateTime.now())
                 .status(status)
+                .sourceType("MANUAL")
                 .build();
     }
 }

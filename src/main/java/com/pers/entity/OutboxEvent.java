@@ -60,6 +60,9 @@ public class OutboxEvent implements BaseEntity<UUID> {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String payload;
 
+    @Column(name = "trace_parent", length = 128)
+    private String traceParent;
+
     /**
      * Статус обработки события.
      */

@@ -3,6 +3,7 @@ package com.pers.kafka;
 import com.pers.dto.event.AccountCloseEvent;
 import com.pers.dto.event.BalanceOperationResult;
 import com.pers.dto.event.NotificationEvent;
+import com.pers.dto.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,9 @@ public class KafkaProducerService {
     @Value("${spring.kafka.topics.notifications}")
     private String notificationsTopic;
 
+    @Value("${spring.kafka.topics.payment-events}")
+    private String paymentEventsTopic;
+
     public void sendAccountCloseEvent(AccountCloseEvent event) {
         kafkaTemplate.send(accountCloseTopic, event.accountId().toString(), event);
         log.info("Отправлено событие по закрытию счете с accountId: {}", event.accountId());
@@ -48,5 +52,18 @@ public class KafkaProducerService {
     public void sendNotification(NotificationEvent event) {
         kafkaTemplate.send(notificationsTopic, event.recipientPhone(), event);
         log.info("Отправлено уведомление {} для {}", event.type(), event.recipientPhone());
+    }
+
+    public void sendPaymentCompleted(PaymentCompletedEvent event) {
+        try {
+            kafkaTemplate.send(paymentEventsTopic, event.paymentId().toString(), event)
+                    .get(5, TimeUnit.SECONDS);
+            log.info("Отправлено событие выполненного платежа paymentId={}", event.paymentId());
+        } catch (Exception exception) {
+            throw new IllegalStateException(
+                    "Не удалось опубликовать событие выполненного платежа paymentId=" + event.paymentId(),
+                    exception
+            );
+        }
     }
 }
