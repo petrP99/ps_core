@@ -24,11 +24,9 @@ public class TraceResponseHeaderFilter extends OncePerRequestFilter {
     private final Tracer tracer;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         addTraceId(response);
         filterChain.doFilter(request, response);
         addTraceId(response);
