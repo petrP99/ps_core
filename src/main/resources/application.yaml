@@ -1,0 +1,115 @@
+keycloak:
+  base-url: ${KEYCLOAK_BASE_URL:http://localhost:8081}
+  realm: ${KEYCLOAK_REALM:psproject}
+  admin-username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+  admin-password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+  client-id: ${KEYCLOAK_CLIENT_ID:psproject-frontend}
+  client-secret: ""
+
+spring:
+  application:
+    name: ps_core
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/psproject}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/psproject/protocol/openid-connect/certs}
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      connect-timeout: 2000
+      timeout: 1000
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/payments_system}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
+        highlight_sql: true
+        hbm2ddl.auto: validate
+    open-in-view: false
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+    topics:
+      balance-operation-execute: ps-transfer-execute
+      balance-operation-result: ps-transfer-result
+      account-close: ps-account-close
+      notifications: ps-notifications
+      payment-events: ps-payment-events
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: accountClose:com.pers.dto.event.AccountCloseEvent,balanceOperationCommand:com.pers.dto.event.BalanceOperationCommand,balanceOperationResult:com.pers.dto.event.BalanceOperationResult,paymentCompleted:com.pers.dto.event.PaymentCompletedEvent
+    consumer:
+      group-id: ps-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.type.mapping: accountClose:com.pers.dto.event.AccountCloseEvent,balanceOperationCommand:com.pers.dto.event.BalanceOperationCommand,balanceOperationResult:com.pers.dto.event.BalanceOperationResult
+        spring.json.trusted.packages: "com.pers.*"
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    org.springframework.security: TRACE
+
+value:
+  exchangeRate:
+    url: https://v6.exchangerate-api.com/v6/19c0929c9d29445d4cc474aa/latest/RUB
+
+currency:
+  target-currencies:
+    - USD
+    - CNY
+
+services:
+  ps-transfer:
+    internal-token: ${TRANSFER_INTERNAL_TOKEN:dev-transfer-internal-token}
+  ps-cashback:
+    internal-token: ${CASHBACK_INTERNAL_TOKEN:dev-cashback-internal-token}
+
+outbox:
+  publisher:
+    fixed-delay-ms: 1000
+    initial-delay-ms: 1000
+    batch-size: 50
+    retry-delay-seconds: 10
+    max-attempts: 20
+    retention-days: 7
+    cleanup-cron: "0 0 3 * * *"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}

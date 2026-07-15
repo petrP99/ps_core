@@ -6,11 +6,405 @@ services:
     environment:
       POSTGRES_DB: payments_system
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - observability-net
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d payments_system" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/payments_system?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - observability-net
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - observability-net
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://${PUBLIC_HOST:-localhost}:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - observability-net
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    ports:
+      - "8070:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - observability-net
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter
+    container_name: kafka-exporter
+    ports:
+      - "9308:9308"
+    restart: unless-stopped
+    command:
+      - "--kafka.server=kafka:29092"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - observability-net
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9308/metrics" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak_user
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
+    ports:
+      - "5433:5432"
+    volumes:
+      - keycloak_postgres_data:/var/lib/postgresql/data
+    networks:
+      - observability-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak
+    depends_on:
+      - keycloak-db
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak_db
+      KC_DB_USERNAME: keycloak_user
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
+      KC_HOSTNAME: ${PUBLIC_HOST:-localhost}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8081:8080"
+    command: [ "start-dev", "--import-realm" ]
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+      - ./keycloak/themes:/opt/keycloak/themes
+    networks:
+      - observability-net
+
+  keycloak-config:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak-config
+    depends_on:
+      - keycloak
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        until /opt/keycloak/bin/kcadm.sh config credentials \
+          --server http://keycloak:8080 \
+          --realm master \
+          --user ${KEYCLOAK_ADMIN:-admin} \
+          --password ${KEYCLOAK_ADMIN_PASSWORD:-admin}; do
+          sleep 2
+        done
+        /opt/keycloak/bin/kcadm.sh update realms/psproject \
+          -s loginTheme=payflow \
+          -s internationalizationEnabled=true \
+          -s 'supportedLocales=["ru","en"]' \
+          -s defaultLocale=ru \
+          -s registrationEmailAsUsername=true
+        CLIENT_UUID=$$(/opt/keycloak/bin/kcadm.sh get clients \
+          -r psproject \
+          -q clientId=psproject-frontend \
+          --fields id \
+          --format csv | tail -n 1 | tr -d '"')
+        /opt/keycloak/bin/kcadm.sh update clients/$$CLIENT_UUID -r psproject \
+          -s 'redirectUris=["${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:5173/*","${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:9091/*"]' \
+          -s 'webOrigins=["${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:5173","${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:9091"]' \
+          -s 'attributes."post.logout.redirect.uris"=${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:5173/*##${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:9091/*'
+        CLIENT_SCOPE_UUID=$$(/opt/keycloak/bin/kcadm.sh get client-scopes \
+          -r psproject \
+          -q name=profile \
+          --fields id \
+          --format csv | tail -n 1 | tr -d '"')
+        CLIENT_ID_MAPPER_EXISTS=$$(/opt/keycloak/bin/kcadm.sh get client-scopes/$$CLIENT_SCOPE_UUID/protocol-mappers/models \
+          -r psproject \
+          --fields name \
+          --format csv | grep -c '"clientId"' || true)
+        if [ "$$CLIENT_ID_MAPPER_EXISTS" = "0" ]; then
+          /opt/keycloak/bin/kcadm.sh create client-scopes/$$CLIENT_SCOPE_UUID/protocol-mappers/models \
+            -r psproject \
+            -s name=clientId \
+            -s protocol=openid-connect \
+            -s protocolMapper=oidc-usermodel-attribute-mapper \
+            -s consentRequired=false \
+            -s 'config."user.attribute"=clientId' \
+            -s 'config."claim.name"=clientId' \
+            -s 'config."jsonType.label"=String' \
+            -s 'config."access.token.claim"=true' \
+            -s 'config."id.token.claim"=true' \
+            -s 'config."userinfo.token.claim"=true' \
+            -s 'config."introspection.token.claim"=true'
+        fi
+    restart: "no"
+    networks:
+      - observability-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: payment-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - observability-net
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+    networks:
+      - observability-net
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana-oss:13.0.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-admin}
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
+    networks:
+      - observability-net
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ps_core:
+    image: ps_core:latest
+    container_name: ps_core
+    ports:
+      - "8080:8080"
+    build:
+      context: .
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: ${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:8081/realms/psproject
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/psproject/protocol/openid-connect/certs
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      TRANSFER_INTERNAL_TOKEN: ${TRANSFER_INTERNAL_TOKEN:-dev-transfer-internal-token}
+      CASHBACK_INTERNAL_TOKEN: ${CASHBACK_INTERNAL_TOKEN:-dev-cashback-internal-token}
+      SPRING_KAFKA_TOPICS_PAYMENT_EVENTS: ps-payment-events
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4318/v1/traces
+      TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLING_PROBABILITY:-1.0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      alloy:
+        condition: service_started
+    networks:
+      - observability-net
+      - default
+
+  minio:
+    image: minio/minio:latest
+    container_name: tempo-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tempo}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-tempo-tempo}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - observability-net
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: tempo-minio-init
+    depends_on:
+      - minio
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        until mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-tempo} ${MINIO_ROOT_PASSWORD:-tempo-tempo}; do
+          sleep 2
+        done
+        mc mb --ignore-existing local/tempo
+    networks:
+      - observability-net
+
+  tempo:
+    image: grafana/tempo:2.5.0
+    container_name: tempo
+    user: "root"
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo_wal:/var/tempo/wal
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - observability-net
+
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    user: "root"
+    volumes:
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_chunks:/loki/chunks
+      - loki_index:/loki/tsdb-index
+      - loki_cache:/loki/tsdb-cache
+      - loki_compactor:/loki/compactor
+      - loki_rules:/loki/rules
+    networks:
+      - observability-net
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    user: root
+    ports:
+      - "9080:9080"  # HTTP-интерфейс Alloy (по умолчанию)
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log:ro
+    environment:
+      GRAFANA_LOKI_URL: http://loki:3100/loki/api/v1/push  # локальный Loki
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:9080
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    networks:
+      - observability-net
+
+networks:
+  observability-net:
+    name: ps-observability-net
+    driver: bridge
 
 volumes:
+  keycloak_postgres_data:
   postgres_data:
+  redis_data:
+  grafana-storage:
+  kafka_data:
+  loki_data:
+  loki_chunks:
+  loki_index:
+  loki_cache:
+  loki_compactor:
+  loki_rules:
+  minio_data:
+  tempo_wal:

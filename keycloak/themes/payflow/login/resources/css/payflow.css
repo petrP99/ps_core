@@ -1,0 +1,358 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --payflow-bg: #0a0a0f;
+  --payflow-card: rgba(18, 18, 29, 0.9);
+  --payflow-border: rgba(255, 255, 255, 0.09);
+  --payflow-text: #e8e8f0;
+  --payflow-muted: rgba(232, 232, 240, 0.55);
+  --payflow-primary: #6366f1;
+  --payflow-secondary: #c084fc;
+  --payflow-danger: #fb7185;
+}
+
+html,
+body,
+body.login-pf {
+  min-height: 100%;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--payflow-text);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(99, 102, 241, 0.18), transparent 32%),
+    radial-gradient(circle at 82% 78%, rgba(236, 72, 153, 0.13), transparent 30%),
+    radial-gradient(circle at 76% 12%, rgba(6, 182, 212, 0.08), transparent 26%),
+    var(--payflow-bg) !important;
+}
+
+body::before,
+body::after {
+  position: fixed;
+  z-index: 0;
+  width: 420px;
+  height: 420px;
+  content: "";
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: payflow-float 9s ease-in-out infinite;
+}
+
+body::before {
+  top: -220px;
+  left: 8%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18), transparent 68%);
+}
+
+body::after {
+  right: 5%;
+  bottom: -240px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.14), transparent 68%);
+  animation-delay: -4s;
+}
+
+.login-pf-page,
+.pf-c-login,
+.pf-v5-c-login {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+.login-pf-page .card-pf,
+.pf-c-login__main,
+.pf-v5-c-login__main {
+  overflow: hidden;
+  color: var(--payflow-text);
+  background: var(--payflow-card) !important;
+  border: 1px solid var(--payflow-border) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.45),
+    0 0 48px rgba(99, 102, 241, 0.12) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: payflow-enter 0.45s ease-out;
+}
+
+.login-pf-page .card-pf {
+  max-width: 460px;
+  padding: 36px 40px 34px;
+  margin: 0 auto;
+}
+
+.pf-c-login__main,
+.pf-v5-c-login__main {
+  max-width: 480px;
+}
+
+#kc-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+#kc-header-wrapper {
+  padding: 0;
+  font-size: 0;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: transparent;
+  text-transform: none;
+}
+
+#kc-header-wrapper::before {
+  display: block;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 18px;
+  font-size: 32px;
+  line-height: 68px;
+  color: #fff;
+  content: "P";
+  background: linear-gradient(135deg, var(--payflow-primary), var(--payflow-secondary), #f472b6);
+  border-radius: 20px;
+  box-shadow: 0 0 36px rgba(99, 102, 241, 0.34);
+}
+
+#kc-header-wrapper::after {
+  display: block;
+  font-size: 30px;
+  line-height: 1.15;
+  content: "PayFlow";
+  background: linear-gradient(135deg, #fff 10%, #a5b4fc 50%, #f0abfc);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#kc-page-title,
+.pf-c-title,
+.pf-v5-c-title {
+  color: var(--payflow-text) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em;
+}
+
+#kc-content,
+#kc-content-wrapper,
+#kc-form,
+#kc-form-wrapper {
+  color: var(--payflow-text);
+}
+
+label,
+.pf-c-form__label,
+.pf-v5-c-form__label,
+.pf-c-check__label,
+.pf-v5-c-check__label {
+  color: rgba(232, 232, 240, 0.78) !important;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+.pf-c-form-control,
+.pf-v5-c-form-control {
+  min-height: 48px;
+  color: var(--payflow-text) !important;
+  caret-color: #a5b4fc;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+input:focus,
+.pf-c-form-control:focus,
+.pf-v5-c-form-control:focus-within {
+  background: rgba(255, 255, 255, 0.065) !important;
+  border-color: rgba(129, 140, 248, 0.75) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14) !important;
+  outline: none !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--payflow-text);
+  box-shadow: 0 0 0 1000px #171722 inset !important;
+  transition: background-color 9999s ease-out;
+}
+
+.pf-c-input-group,
+.pf-v5-c-input-group {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.pf-c-input-group:focus-within,
+.pf-v5-c-input-group:focus-within {
+  background: rgba(255, 255, 255, 0.065) !important;
+  border-color: rgba(129, 140, 248, 0.75) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14) !important;
+}
+
+.pf-c-input-group > .pf-c-form-control,
+.pf-v5-c-input-group > .pf-v5-c-form-control {
+  flex: 1;
+  min-width: 0;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 11px 0 0 11px !important;
+}
+
+.pf-c-input-group > .pf-c-form-control:focus,
+.pf-v5-c-input-group > .pf-v5-c-form-control:focus {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.pf-c-button.pf-m-control,
+.pf-v5-c-button.pf-m-control {
+  width: 48px;
+  min-width: 48px;
+  color: #a5b4fc !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 11px 11px 0 !important;
+}
+
+#kc-login,
+input[type="submit"].pf-c-button.pf-m-primary,
+button.pf-c-button.pf-m-primary,
+.pf-v5-c-button.pf-m-primary {
+  min-height: 50px;
+  font-weight: 700;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--payflow-primary), var(--payflow-secondary)) !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.28) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+#kc-login:hover,
+input[type="submit"].pf-c-button.pf-m-primary:hover,
+button.pf-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 34px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+a,
+.pf-c-button.pf-m-link,
+.pf-v5-c-button.pf-m-link {
+  color: #a5b4fc !important;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #d8b4fe !important;
+  text-decoration: none;
+}
+
+#kc-registration,
+#kc-info,
+#kc-info-wrapper,
+.login-pf-signup,
+.pf-c-login__main-footer-band,
+.pf-v5-c-login__main-footer-band {
+  color: var(--payflow-muted);
+  background: rgba(255, 255, 255, 0.025) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.login-pf-page #kc-info {
+  margin: 28px -40px -34px !important;
+  padding: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.login-pf-page #kc-info-wrapper {
+  padding: 20px 40px !important;
+  text-align: center;
+}
+
+.alert,
+.pf-c-alert,
+.pf-v5-c-alert {
+  color: var(--payflow-text);
+  background: rgba(99, 102, 241, 0.12) !important;
+  border: 1px solid rgba(129, 140, 248, 0.24) !important;
+  border-radius: 12px !important;
+}
+
+.alert-error,
+.pf-c-alert.pf-m-danger,
+.pf-v5-c-alert.pf-m-danger {
+  background: rgba(251, 113, 133, 0.1) !important;
+  border-color: rgba(251, 113, 133, 0.28) !important;
+}
+
+.kc-feedback-text,
+.pf-c-form__helper-text.pf-m-error,
+.pf-v5-c-helper-text__item-text.pf-m-error {
+  color: #fda4af !important;
+}
+
+#kc-locale-dropdown a,
+#kc-locale-dropdown button {
+  color: var(--payflow-muted) !important;
+}
+
+.pf-c-dropdown__menu,
+.pf-v5-c-menu {
+  color: var(--payflow-text);
+  background: #171722 !important;
+  border: 1px solid var(--payflow-border) !important;
+}
+
+@keyframes payflow-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes payflow-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(18px);
+  }
+}
+
+@media (max-width: 600px) {
+  .login-pf-page {
+    padding: 24px 16px;
+  }
+
+  .login-pf-page .card-pf {
+    padding: 28px 22px;
+    border-radius: 20px !important;
+  }
+
+  .pf-c-login__main,
+  .pf-v5-c-login__main {
+    margin: 16px;
+  }
+}
