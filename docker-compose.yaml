@@ -146,7 +146,8 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak_db
       KC_DB_USERNAME: keycloak_user
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
-      KC_HOSTNAME: ${PUBLIC_HOST:-localhost}
+      KC_HOSTNAME_URL: ${PUBLIC_SCHEME:-http}://${PUBLIC_HOST:-localhost}:8081
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
     ports:
