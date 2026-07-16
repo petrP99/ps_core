@@ -300,8 +300,10 @@ services:
       alloy:
         condition: service_started
     networks:
-      - observability-net
-      - default
+      observability-net:
+        aliases:
+          - ps-core
+      default: { }
 
   minio:
     image: minio/minio:latest
