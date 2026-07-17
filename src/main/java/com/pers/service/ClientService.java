@@ -1,6 +1,7 @@
 package com.pers.service;
 
 import com.pers.dto.request.AccountRequestDto;
+import com.pers.dto.request.CardRequestDto;
 import com.pers.dto.request.ClientRequestDto;
 import com.pers.dto.response.ClientResponseDto;
 import com.pers.entity.Client;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.pers.util.constant.Constants.DEFAULT_ACCOUNT_NAME;
+import static com.pers.util.constant.Constants.DEFAULT_CARD_NAME;
 import static com.pers.util.constant.Constants.KEYCLOAK_SUB;
 
 
@@ -31,6 +33,7 @@ public class ClientService {
     private final ClientReadMapper clientReadMapper;
     private final ClientCreateMapper clientCreateMapper;
     private final AccountService accountService;
+    private final CardService cardService;
 
     public Optional<ClientResponseDto> findById(UUID id) {
         return clientRepository.findById(id)
@@ -49,7 +52,7 @@ public class ClientService {
 
         ClientRequestDto createDto = clientCreateMapper.mapToDto(attributes);
         try {
-            return createClientWithDefaultAccount(createDto, clientId);
+            return createClientWithDefaults(createDto, clientId);
         } catch (DataIntegrityViolationException exception) {
             if (clientRepository.existsById(clientId)) {
                 return clientId;
@@ -58,10 +61,17 @@ public class ClientService {
         }
     }
 
-    private UUID createClientWithDefaultAccount(ClientRequestDto clientDto, UUID clientId) {
+    private UUID createClientWithDefaults(ClientRequestDto clientDto, UUID clientId) {
         AccountRequestDto defaultAccount = new AccountRequestDto(Currency.RUB, DEFAULT_ACCOUNT_NAME);
         ClientResponseDto createdClient = create(clientDto, clientId);
-        accountService.create(defaultAccount, createdClient.getId());
+        var createdAccount = accountService.create(defaultAccount, createdClient.getId());
+        CardRequestDto defaultCard = new CardRequestDto(
+                DEFAULT_CARD_NAME,
+                Currency.RUB,
+                false,
+                createdAccount.id()
+        );
+        cardService.create(createdClient.getId(), defaultCard);
         return createdClient.getId();
     }
 

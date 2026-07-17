@@ -8,6 +8,7 @@ public class Constants {
 
     public static final String ACCOUNT_NAME = "Счет-";
     public static final String DEFAULT_ACCOUNT_NAME = "Основной счет";
+    public static final String DEFAULT_CARD_NAME = "Основная";
     public static final Map<Currency, String> CURRENCY_PREFIXES = Map.of(
             Currency.RUB, "220011",
             Currency.USD, "440055",

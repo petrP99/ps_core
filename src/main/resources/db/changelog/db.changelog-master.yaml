@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changelog-01052024/add-cashback-support.sql
   - include:
       file: db/changelog/changelog-01052024/insert-data.sql
+  - include:
+      file: db/changelog/changelog-01052024/insert_data_fill_finance_operations.sql
