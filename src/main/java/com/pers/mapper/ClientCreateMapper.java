@@ -40,9 +40,16 @@ public class ClientCreateMapper implements Mapper<ClientRequestDto, Client> {
     }
 
     public ClientRequestDto mapToDto(Map<String, Object> attributes) {
+        String fullName = attributes.get(KEYCLOAK_NAME).toString().trim();
+        String[] nameParts = fullName.split("\\s+", 2);
+        String firstName = nameParts[0];
+        String lastName = nameParts.length > 1
+                ? nameParts[1]
+                : attributes.get(KEYCLOAK_FAMILY_NAME).toString().trim();
+
         return ClientRequestDto.builder()
-                .firstName(attributes.get(KEYCLOAK_NAME).toString())
-                .lastName(attributes.get(KEYCLOAK_FAMILY_NAME).toString())
+                .firstName(firstName)
+                .lastName(lastName)
                 .phone(attributes.get(KEYCLOAK_PHONE).toString())
                 .build();
     }
